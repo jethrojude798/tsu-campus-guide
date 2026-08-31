@@ -164,8 +164,12 @@ export async function getAdminCampusData() {
 }
 
 export async function getAdminUsers() {
-  return prisma.adminUser.findMany({
-    select: { id: true, username: true, fullName: true, role: true },
-    orderBy: { username: "asc" }
-  });
+  try {
+    return await prisma.adminUser.findMany({
+      select: { id: true, username: true, fullName: true, role: true },
+      orderBy: { username: "asc" }
+    });
+  } catch {
+    return [];
+  }
 }

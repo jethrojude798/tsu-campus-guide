@@ -94,17 +94,19 @@ export async function getAdminSessionUser(): Promise<AdminUser | null> {
     };
   }
 
-  const user = await prisma.adminUser.findUnique({
-    where: { id: payload.sub },
-    select: {
-      id: true,
-      username: true,
-      fullName: true,
-      role: true
-    }
-  });
-
-  return user;
+  try {
+    return await prisma.adminUser.findUnique({
+      where: { id: payload.sub },
+      select: {
+        id: true,
+        username: true,
+        fullName: true,
+        role: true
+      }
+    });
+  } catch {
+    return null;
+  }
 }
 
 export async function authenticateAdmin(username: string, password: string) {
