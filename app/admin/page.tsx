@@ -1,7 +1,7 @@
 import { AdminDashboard } from "@/components/admin-dashboard";
 import { AdminLoginForm } from "@/components/admin-login-form";
 import { getAdminSessionUser } from "@/lib/auth";
-import { getAdminCampusData } from "@/lib/data";
+import { getAdminCampusData, getAdminUsers } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -27,11 +27,11 @@ export default async function AdminPage() {
     );
   }
 
-  const data = await getAdminCampusData();
+  const [data, admins] = await Promise.all([getAdminCampusData(), getAdminUsers()]);
 
   return (
     <main className="adminShell">
-      <AdminDashboard user={user} data={data} />
+      <AdminDashboard user={user} data={data} admins={admins} />
     </main>
   );
 }

@@ -12,6 +12,8 @@ type AdminUser = {
   role: string;
 };
 
+type ManagedAdmin = AdminUser;
+
 type Category = {
   id: string;
   name: string;
@@ -93,6 +95,12 @@ const guideSchema = z.object({
   isPlaceholder: z.union([z.literal("on"), z.literal("true"), z.literal("false"), z.undefined()])
 });
 
+const adminSchema = z.object({
+  username: z.string().trim().min(3, "Username must be at least 3 characters."),
+  fullName: z.string().trim().min(2, "Full name is required."),
+  password: z.string().min(8, "Password must be at least 8 characters.")
+});
+
 function checkboxToBoolean(value: unknown) {
   return value === "on" || value === "true";
 }
@@ -171,13 +179,15 @@ function ItemList({
 
 export function AdminDashboard({
   user,
-  data
+  data,
+  admins
 }: {
   user: AdminUser;
   data: AdminData;
+  admins: ManagedAdmin[];
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<"places" | "guide">("places");
+  const [tab, setTab] = useState<"places" | "guide" | "admins">("places");
   const [selectedPlaceId, setSelectedPlaceId] = useState<string>(
     data.places[0]?.id ?? ""
   );
@@ -296,6 +306,51 @@ export function AdminDashboard({
     });
   }
 
+  async function handleAdminSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setMessage(null);
+    const formData = new FormData(event.currentTarget);
+    const parsed = adminSchema.safeParse({
+      username: formData.get("username"),
+      fullName: formData.get("fullName"),
+      password: formData.get("password")
+    });
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? "Please check the admin details.");
+      return;
+    }
+    startTransition(async () => {
+      try {
+        await submitJSON("/api/admin/users", "POST", parsed.data);
+        event.currentTarget.reset();
+        setMessage("Admin account created.");
+        router.refresh();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unable to create admin account.");
+      }
+    });
+  }
+
+  async function handleDeleteAdmin(admin: ManagedAdmin) {
+    if (admin.id === user.id) {
+      setError("You cannot delete your own admin account.");
+      return;
+    }
+    if (!window.confirm(`Remove admin "${admin.username}"?`)) return;
+    setError(null);
+    setMessage(null);
+    startTransition(async () => {
+      try {
+        await submitJSON("/api/admin/users", "DELETE", { id: admin.id });
+        setMessage("Admin account removed.");
+        router.refresh();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unable to remove admin account.");
+      }
+    });
+  }
+
   async function handleDeletePlace() {
     if (!selectedPlace) return;
     if (!window.confirm(`Delete "${selectedPlace.name}"?`)) return;
@@ -397,6 +452,13 @@ export function AdminDashboard({
           >
             New student guide
           </button>
+          <button
+            type="button"
+            className={`tabButton ${tab === "admins" ? "tabButtonActive" : ""}`}
+            onClick={() => setTab("admins")}
+          >
+            Admin users
+          </button>
         </div>
 
         {message ? <p className="successText">{message}</p> : null}
@@ -425,7 +487,7 @@ export function AdminDashboard({
                 badge={(item) => (item.isPlaceholder ? "Demo" : null)}
               />
             </div>
-          ) : (
+          ) : tab === "guide" ? (
             <div className="panel">
               <div className="panelHeader">
                 <div>
@@ -444,6 +506,24 @@ export function AdminDashboard({
                 subtitleKey="description"
                 badge={(item) => (item.isPlaceholder ? "Demo" : null)}
               />
+            </div>
+          ) : (
+            <div className="panel">
+              <div className="panelHeader">
+                <div>
+                  <span className="eyebrow">Security</span>
+                  <h2 className="sectionTitle">Admin users</h2>
+                </div>
+              </div>
+              <div className="stackedList">
+                {admins.map((admin) => (
+                  <div className="compactItem" key={admin.id}>
+                    <div className="resultTitleRow"><strong>{admin.fullName}</strong>{admin.id === user.id ? <span className="badge">You</span> : null}</div>
+                    <span className="meta">{admin.username} - {admin.role}</span>
+                    {admin.id !== user.id ? <button className="textButton dangerText" type="button" onClick={() => handleDeleteAdmin(admin)} disabled={isPending}>Remove</button> : null}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </section>
@@ -612,7 +692,7 @@ export function AdminDashboard({
                 </button>
               </div>
             </form>
-          ) : (
+          ) : tab === "guide" ? (
             <form
               className="panel"
               key={selectedGuide?.id ?? "new-guide"}
@@ -693,6 +773,22 @@ export function AdminDashboard({
                   {isPending ? "Saving..." : selectedGuide ? "Save changes" : "Create guide step"}
                 </button>
               </div>
+            </form>
+          ) : (
+            <form className="panel" onSubmit={handleAdminSubmit}>
+              <div className="panelHeader">
+                <div>
+                  <span className="eyebrow">Admin users</span>
+                  <h2 className="sectionTitle">Add an administrator</h2>
+                </div>
+              </div>
+              <p className="sectionLead">Create a separate sign-in for someone who should manage locations and guide content.</p>
+              <div className="formGrid">
+                <label className="field"><span>Username</span><input className="textInput" name="username" autoComplete="username" /></label>
+                <label className="field"><span>Full name</span><input className="textInput" name="fullName" autoComplete="name" /></label>
+                <label className="field"><span>Password</span><input className="textInput" name="password" type="password" autoComplete="new-password" minLength={8} /></label>
+              </div>
+              <div className="formActions" style={{ marginTop: 16 }}><button className="buttonPrimary" type="submit" disabled={isPending}>{isPending ? "Creating..." : "Create admin"}</button></div>
             </form>
           )}
         </section>

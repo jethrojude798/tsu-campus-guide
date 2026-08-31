@@ -20,6 +20,9 @@ a { color:inherit; text-decoration:none; } button,input,select,textarea { font:i
 .place-more dl div { display:flex; justify-content:space-between; gap:10px; }
 .place-more dt { color:var(--teal); }
 .place-more dd { margin:0; text-align:right; }
+.textButton { margin-top:8px; padding:0; border:0; color:var(--muted); background:transparent; font-size:10px; }
+.textButton:hover { color:var(--text); }
+.dangerText { color:#ff9b82; }
 .place-actions { display:flex; gap:8px; margin-top:14px; }
 .direction-button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:38px; padding:0 14px; border:0; border-radius:999px; color:#1a1305; background:var(--orange); font-size:11px; font-weight:700; }
 .direction-button:hover { filter:brightness(1.08); }

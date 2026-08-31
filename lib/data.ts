@@ -162,3 +162,10 @@ export async function getAdminCampusData() {
   const [publicData] = await Promise.all([getPublicCampusData()]);
   return publicData;
 }
+
+export async function getAdminUsers() {
+  return prisma.adminUser.findMany({
+    select: { id: true, username: true, fullName: true, role: true },
+    orderBy: { username: "asc" }
+  });
+}
