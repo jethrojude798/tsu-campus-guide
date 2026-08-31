@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  fullName     String
+  passwordHash String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String
+  accent      String
+  places      Place[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Place {
+  id                  String      @id @default(cuid())
+  slug                String      @unique
+  name                String
+  shortDescription    String
+  longDescription     String
+  categoryId          String
+  category            Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  isFeatured          Boolean     @default(false)
+  isPlaceholder       Boolean     @default(true)
+  mapX                Float
+  mapY                Float
+  latitude            Float?
+  longitude           Float?
+  openingHours        String?
+  accessibilityNotes  String?
+  routeHint           String?
+  contactNote         String?
+  sortOrder           Int         @default(0)
+  tags                PlaceTag[]
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+}
+
+model PlaceTag {
+  id      String @id @default(cuid())
+  label   String
+  placeId String
+  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@index([placeId])
+}
+
+model GuideStep {
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  icon          String
+  audience      String
+  order         Int      @default(0)
+  isPlaceholder Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
