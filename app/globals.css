@@ -1020,7 +1020,10 @@ button {
    ========================================================================== */
 
 .guide-section {
-  grid-column: 1 / -1;
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  clear: both;
   margin-top: 24px;
   padding: 32px;
   border: 1px solid var(--border-card);
