@@ -48,11 +48,39 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   const [routeGeometry, setRouteGeometry] = useState<[number, number][]>([]);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [isLiveLocation, setIsLiveLocation] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
   const [isSatellite, setIsSatellite] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [showEmergency, setShowEmergency] = useState(false);
 
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
+
+  // Check URL on initial mount for direct place link (e.g. ?place=health-sciences)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const placeParam = params.get("place");
+    if (placeParam) {
+      const match = data.places.find(
+        (p) => p.slug.toLowerCase() === placeParam.toLowerCase() || p.id.toLowerCase() === placeParam.toLowerCase()
+      );
+      if (match) {
+        setSelectedSlug(match.slug);
+      }
+    }
+  }, [data.places]);
+
+  // Sync selected place into browser address bar without page reload
+  useEffect(() => {
+    if (typeof window === "undefined" || !selectedSlug) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("place") !== selectedSlug) {
+      url.searchParams.set("place", selectedSlug);
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [selectedSlug]);
 
   // Listen for theme changes to dynamically sync dark/light street maps
   useEffect(() => {
@@ -96,7 +124,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
     if (!isLiveLocation || !navigator.geolocation) return;
     const watchId = navigator.geolocation.watchPosition(
       (position) => setUserLocation([position.coords.latitude, position.coords.longitude]),
-      () => setRouteMessage("Live location is unavailable. Check your browser location permission."),
+      () => setRouteMessage("Live location unavailable. Check browser location permissions."),
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
     );
     return () => navigator.geolocation.clearWatch(watchId);
@@ -108,12 +136,30 @@ export function CampusExplorer({ data }: { data: CampusData }) {
       return;
     }
     setRouteMessage(null);
-    setIsLiveLocation(true);
+    setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => setUserLocation([position.coords.latitude, position.coords.longitude]),
-      () => setRouteMessage("Allow location access in your browser to see your live position."),
+      (position) => {
+        setIsLocating(false);
+        setIsLiveLocation(true);
+        setUserLocation([position.coords.latitude, position.coords.longitude]);
+      },
+      () => {
+        setIsLocating(false);
+        setRouteMessage("Allow location access in your browser to show your campus position.");
+      },
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
     );
+  }
+
+  function handleSharePlace() {
+    if (!selected) return;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?place=${selected.slug}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2400);
+      });
+    }
   }
 
   async function requestWalkingRoute() {
@@ -184,82 +230,117 @@ export function CampusExplorer({ data }: { data: CampusData }) {
         </div>
 
         {/* Floating Frosted Search Bar */}
-        <div className="map-search">
-          <label htmlFor="place-search" className="sr-only">Search campus buildings</label>
-          <span aria-hidden="true" className="search-icon">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.35-4.35" />
-            </svg>
-          </span>
-          <input
-            id="place-search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search buildings, faculties, hostels..."
-            autoComplete="off"
-          />
-          {query ? (
+        <div className="map-search-group">
+          <div className="map-search">
+            <label htmlFor="place-search" className="sr-only">Search campus buildings</label>
+            <span aria-hidden="true" className="search-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+            </span>
+            <input
+              id="place-search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search buildings, faculties, hostels..."
+              autoComplete="off"
+            />
+            {query ? (
+              <button
+                type="button"
+                className="search-clear-btn"
+                onClick={() => setQuery("")}
+                aria-label="Clear search"
+                title="Clear search"
+              >
+                ×
+              </button>
+            ) : null}
             <button
               type="button"
-              className="search-clear-btn"
-              onClick={() => setQuery("")}
-              aria-label="Clear search"
-              title="Clear search"
+              className={`location-button ${isLiveLocation ? "is-active" : ""} ${isLocating ? "is-locating" : ""}`}
+              aria-label="Show my live location"
+              onClick={showLiveLocation}
+              title="Locate my position on campus"
             >
-              ×
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <circle cx="12" cy="12" r="8" />
+                <line x1="12" y1="2" x2="12" y2="5" />
+                <line x1="12" y1="19" x2="12" y2="22" />
+                <line x1="2" y1="12" x2="5" y2="12" />
+                <line x1="19" y1="12" x2="22" y2="12" />
+              </svg>
             </button>
-          ) : null}
-          <button
-            type="button"
-            className="location-button"
-            aria-label="Show my live location"
-            onClick={showLiveLocation}
-            title="Locate my position"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3" />
-              <circle cx="12" cy="12" r="8" />
-              <line x1="12" y1="2" x2="12" y2="5" />
-              <line x1="12" y1="19" x2="12" y2="22" />
-              <line x1="2" y1="12" x2="5" y2="12" />
-              <line x1="19" y1="12" x2="22" y2="12" />
-            </svg>
-          </button>
+          </div>
+
+          {/* Map stage quick category pills */}
+          <div className="map-category-pills" role="toolbar" aria-label="Filter locations by category">
+            <button
+              type="button"
+              className={`map-pill ${category === "all" ? "is-active" : ""}`}
+              onClick={() => setCategory("all")}
+            >
+              All
+            </button>
+            {data.categories.map((item) => (
+              <button
+                type="button"
+                key={item.id}
+                className={`map-pill ${category === item.slug ? "is-active" : ""}`}
+                onClick={() => setCategory(item.slug)}
+              >
+                {item.name}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Executive Map Layer Controller (Street / Satellite) */}
-        <div className="map-layer-dock" role="group" aria-label="Map style selector">
+        {/* Executive Map Layer Controller (Street / Satellite) & Emergency SOS */}
+        <div className="map-top-actions">
           <button
             type="button"
-            className={`map-layer-tab ${!isSatellite ? "is-active" : ""}`}
-            onClick={() => setIsSatellite(false)}
-            aria-pressed={!isSatellite}
-            title="Switch to Street view"
+            className="emergency-sos-btn"
+            onClick={() => setShowEmergency(true)}
+            title="Campus Emergency Contacts"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
-              <line x1="9" y1="3" x2="9" y2="18" />
-              <line x1="15" y1="6" x2="15" y2="21" />
-            </svg>
-            <span>Street</span>
+            <span className="sos-dot" />
+            <span>SOS Help</span>
           </button>
-          <button
-            type="button"
-            className={`map-layer-tab ${isSatellite ? "is-active" : ""}`}
-            onClick={() => setIsSatellite(true)}
-            aria-pressed={isSatellite}
-            title="Switch to Satellite view"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M13 7 9 3 5 7l4 4" />
-              <path d="m17 11 4 4-4 4-4-4" />
-              <path d="m8 12 4 4" />
-              <path d="m16 8-4-4" />
-              <circle cx="12" cy="12" r="2" />
-            </svg>
-            <span>Satellite</span>
-          </button>
+
+          <div className="map-layer-dock" role="group" aria-label="Map style selector">
+            <button
+              type="button"
+              className={`map-layer-tab ${!isSatellite ? "is-active" : ""}`}
+              onClick={() => setIsSatellite(false)}
+              aria-pressed={!isSatellite}
+              title="Switch to Street view"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+                <line x1="9" y1="3" x2="9" y2="18" />
+                <line x1="15" y1="6" x2="15" y2="21" />
+              </svg>
+              <span>Street</span>
+            </button>
+            <button
+              type="button"
+              className={`map-layer-tab ${isSatellite ? "is-active" : ""}`}
+              onClick={() => setIsSatellite(true)}
+              aria-pressed={isSatellite}
+              title="Switch to Satellite view"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M13 7 9 3 5 7l4 4" />
+                <path d="m17 11 4 4-4 4-4-4" />
+                <path d="m8 12 4 4" />
+                <path d="m16 8-4-4" />
+                <circle cx="12" cy="12" r="2" />
+              </svg>
+              <span>Satellite</span>
+            </button>
+          </div>
         </div>
 
         {/* Map Canvas */}
@@ -316,6 +397,22 @@ export function CampusExplorer({ data }: { data: CampusData }) {
                   </>
                 )}
               </button>
+
+              <button
+                type="button"
+                className="share-place-button"
+                onClick={handleSharePlace}
+                title="Share link to this location"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="18" cy="5" r="3" />
+                  <circle cx="6" cy="12" r="3" />
+                  <circle cx="18" cy="19" r="3" />
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                </svg>
+                <span>{copiedLink ? "Link copied!" : "Share location"}</span>
+              </button>
             </div>
 
             {routeMessage ? <p className="route-message" role="status">{routeMessage}</p> : null}
@@ -357,7 +454,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
           <span className="place-count-badge">{places.length} locations</span>
         </div>
 
-        {/* Category Filter Chips */}
+        {/* Category Filter Chips in Drawer */}
         <div className="category-scroll" aria-label="Filter by category">
           <button
             type="button"
@@ -436,6 +533,64 @@ export function CampusExplorer({ data }: { data: CampusData }) {
           ))}
         </div>
       </section>
+
+      {/* Emergency Assistance Modal */}
+      {showEmergency ? (
+        <div className="emergency-modal-backdrop" onClick={() => setShowEmergency(false)}>
+          <div className="emergency-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="emergency-modal-header">
+              <div className="emergency-title-group">
+                <span className="emergency-icon-glow">🚨</span>
+                <div>
+                  <h3>Campus Emergency & Support</h3>
+                  <p>Taraba State University Help Lines</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="emergency-close-btn"
+                onClick={() => setShowEmergency(false)}
+                aria-label="Close emergency modal"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="emergency-contacts-list">
+              <a href="tel:08008782267" className="emergency-contact-card">
+                <div className="contact-icon clinic-bg">🏥</div>
+                <div className="contact-info">
+                  <strong>TSU Campus Clinic</strong>
+                  <span>Emergency health response & ambulance</span>
+                </div>
+                <span className="contact-action">Call Now</span>
+              </a>
+
+              <a href="tel:08008787328" className="emergency-contact-card">
+                <div className="contact-icon security-bg">🛡️</div>
+                <div className="contact-info">
+                  <strong>Campus Security Unit</strong>
+                  <span>24/7 Security patrol & Gate officers</span>
+                </div>
+                <span className="contact-action">Call Now</span>
+              </a>
+
+              <a href="tel:08008783326" className="emergency-contact-card">
+                <div className="contact-icon affairs-bg">🎓</div>
+                <div className="contact-info">
+                  <strong>Student Affairs Helpdesk</strong>
+                  <span>Hostel welfare & emergency counseling</span>
+                </div>
+                <span className="contact-action">Call Now</span>
+              </a>
+            </div>
+
+            <p className="emergency-note">
+              For on-campus medical emergencies, visit the TSU Clinic located near the Senate Building.
+            </p>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }
