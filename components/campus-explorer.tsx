@@ -218,8 +218,14 @@ export function CampusExplorer({ data }: { data: CampusData }) {
       <section className="map-stage" aria-label="Campus trail map">
         {/* Floating Campus Badge */}
         <div className="map-brand">
-          <div className="brand-mark-glow">
-            <span className="brand-mark">TS</span>
+          <div className="brand-logo-container map-brand-logo">
+            <img
+              src="/tsu-logo.png"
+              alt="Taraba State University Crest"
+              className="brand-logo-img"
+              width={34}
+              height={34}
+            />
           </div>
           <div className="map-brand-text">
             <strong>Campus trail</strong>
