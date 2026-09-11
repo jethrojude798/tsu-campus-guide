@@ -167,7 +167,8 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   }
 
   return (
-    <div id="explore" className="trail-app">
+    <>
+      <div id="explore" className="trail-app">
       <section className="map-stage" aria-label="Campus trail map">
         {/* Floating Campus Badge */}
         <div className="map-brand">
@@ -412,6 +413,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
           <span className="guide-arrow" aria-hidden="true">↓</span>
         </a>
       </aside>
+      </div>
 
       {/* Guide Section */}
       <section id="guide" className="guide-section">
@@ -434,6 +436,6 @@ export function CampusExplorer({ data }: { data: CampusData }) {
           ))}
         </div>
       </section>
-    </div>
+    </>
   );
 }
