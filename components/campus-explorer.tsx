@@ -96,20 +96,48 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   return <div id="explore" className="trail-app">
     <section className="map-stage" aria-label="Campus trail map">
       <div className="map-brand"><span className="brand-mark">TS</span><div><strong>Campus trail</strong><span>Taraba State University</span></div></div>
-      <div className="map-search"><label htmlFor="place-search" className="sr-only">Search for a building</label><span aria-hidden="true">/</span><input id="place-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search for a building..." /><button
-          type="button"
-          className={`satellite-switch ${isSatellite ? "is-active" : ""}`}
-          onClick={() => setIsSatellite((prev) => !prev)}
-          role="switch"
-          aria-checked={isSatellite}
-          title={isSatellite ? "Switch to Street view" : "Switch to Satellite view"}
-        >
-          <span className="satellite-switch-label">Satellite</span>
-          <span className="satellite-switch-track">
-            <span className="satellite-switch-thumb" />
-          </span>
+      <div className="map-search">
+        <label htmlFor="place-search" className="sr-only">Search for a building</label>
+        <span aria-hidden="true" className="search-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </span>
+        <input id="place-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search for a building..." />
+        <button type="button" className="location-button" aria-label="Show my live location" onClick={showLiveLocation} title="Locate my position">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
         </button>
-        <button type="button" className="location-button" aria-label="Show my live location" onClick={showLiveLocation}>+</button></div>
+      </div>
+      <div className="map-layer-dock" role="group" aria-label="Map style selector">
+        <button
+          type="button"
+          className={`map-layer-tab ${!isSatellite ? "is-active" : ""}`}
+          onClick={() => setIsSatellite(false)}
+          aria-pressed={!isSatellite}
+          title="Switch to Street view"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+            <line x1="9" y1="3" x2="9" y2="18" />
+            <line x1="15" y1="6" x2="15" y2="21" />
+          </svg>
+          <span>Street</span>
+        </button>
+        <button
+          type="button"
+          className={`map-layer-tab ${isSatellite ? "is-active" : ""}`}
+          onClick={() => setIsSatellite(true)}
+          aria-pressed={isSatellite}
+          title="Switch to Satellite view"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M13 7 9 3 5 7l4 4" />
+            <path d="m17 11 4 4-4 4-4-4" />
+            <path d="m8 12 4 4" />
+            <path d="m16 8-4-4" />
+            <circle cx="12" cy="12" r="2" />
+          </svg>
+          <span>Satellite</span>
+        </button>
+      </div>
       <div className="map-canvas"><MapView places={places} selectedSlug={selected?.slug ?? ""} onSelect={setSelectedSlug} route={routeGeometry} userLocation={userLocation} isSatellite={isSatellite} /></div>
       {routeSummary ? <div className="walk-badge"><span className="walk-icon">+</span> Walking route <strong>{routeSummary.minutes} min</strong><span>{routeSummary.distanceKm} km</span></div> : null}
       <div className="map-legend"><span><i className="legend-dot orange" /> campus location</span><span><i className="legend-dot teal" /> selected</span></div>
