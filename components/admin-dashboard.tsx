@@ -187,7 +187,21 @@ export function AdminDashboard({
   admins: ManagedAdmin[];
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<"places" | "guide" | "admins">("places");
+  const [tab, setTab] = useState<"places" | "guide" | "admins" | "emergency">("places");
+  const [emergencyList, setEmergencyList] = useState<Array<{ id: string; name: string; subtitle: string; phone: string; icon: string }>>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("tsu_emergency_contacts");
+      if (saved) {
+        try { return JSON.parse(saved); } catch {}
+      }
+    }
+    return (data as any).emergencyContacts || [
+      { id: "clinic", name: "TSU Campus Clinic", subtitle: "Emergency health response & ambulance", phone: "08008782267", icon: "🏥" },
+      { id: "security", name: "Campus Security Unit", subtitle: "24/7 Security patrol & Gate officers", phone: "08008787328", icon: "🛡️" },
+      { id: "student-affairs", name: "Student Affairs Helpdesk", subtitle: "Hostel welfare & emergency counseling", phone: "08008783326", icon: "🎓" }
+    ];
+  });
+  const [emergencySaved, setEmergencySaved] = useState(false);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string>(
     data.places[0]?.id ?? ""
   );
@@ -459,12 +473,123 @@ export function AdminDashboard({
           >
             Admin users
           </button>
+          <button
+            type="button"
+            className={`tabButton ${tab === "emergency" ? "tabButtonActive" : ""}`}
+            onClick={() => setTab("emergency")}
+          >
+            🚨 Emergency SOS
+          </button>
         </div>
 
         {message ? <p className="successText">{message}</p> : null}
         {error ? <p className="errorText">{error}</p> : null}
       </section>
 
+      {tab === "emergency" ? (
+        <section className="panel adminPanelWide" style={{ marginTop: 16 }}>
+          <div className="panelHeader">
+            <div>
+              <span className="eyebrow">Direct dial assistance</span>
+              <h2 className="sectionTitle">Edit Campus Emergency & Support Numbers</h2>
+              <p className="sectionLead">
+                Update the official telephone lines and direct emergency dispatch contacts for Taraba State University students and faculty.
+              </p>
+            </div>
+            {emergencySaved ? (
+              <span className="successBadge">✓ Saved to live site</span>
+            ) : null}
+          </div>
+
+          <div className="emergencyAdminGrid">
+            {emergencyList.map((contact, idx) => (
+              <div key={contact.id} className="emergencyAdminCard">
+                <div className="emergencyAdminCardHeader">
+                  <span className="contact-icon clinic-bg" style={{ fontSize: "1.3rem" }}>{contact.icon}</span>
+                  <div>
+                    <strong>{contact.name}</strong>
+                    <span className="mutedText" style={{ display: "block" }}>{contact.id.toUpperCase()} SERVICE</span>
+                  </div>
+                </div>
+
+                <div className="field" style={{ marginTop: 12 }}>
+                  <label htmlFor={`phone-${contact.id}`}>Official Phone Number (One-Tap Dial)</label>
+                  <input
+                    id={`phone-${contact.id}`}
+                    type="text"
+                    className="textInput"
+                    value={contact.phone}
+                    placeholder="e.g. 08008782267"
+                    onChange={(e) => {
+                      const updated = [...emergencyList];
+                      updated[idx].phone = e.target.value;
+                      setEmergencyList(updated);
+                      setEmergencySaved(false);
+                    }}
+                  />
+                </div>
+
+                <div className="field" style={{ marginTop: 10 }}>
+                  <label htmlFor={`subtitle-${contact.id}`}>Service Description / Note</label>
+                  <input
+                    id={`subtitle-${contact.id}`}
+                    type="text"
+                    className="textInput"
+                    value={contact.subtitle}
+                    onChange={(e) => {
+                      const updated = [...emergencyList];
+                      updated[idx].subtitle = e.target.value;
+                      setEmergencyList(updated);
+                      setEmergencySaved(false);
+                    }}
+                  />
+                </div>
+
+                <div className="field" style={{ marginTop: 10 }}>
+                  <label htmlFor={`name-${contact.id}`}>Display Title</label>
+                  <input
+                    id={`name-${contact.id}`}
+                    type="text"
+                    className="textInput"
+                    value={contact.name}
+                    onChange={(e) => {
+                      const updated = [...emergencyList];
+                      updated[idx].name = e.target.value;
+                      setEmergencyList(updated);
+                      setEmergencySaved(false);
+                    }}
+                  />
+                </div>
+
+                <div className="emergencyPreviewRow">
+                  <span>Student View:</span>
+                  <a href={`tel:${contact.phone}`} className="buttonSecondary" style={{ padding: "6px 12px", fontSize: "11px", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    📞 Call {contact.phone}
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 20, display: "flex", gap: 12, alignItems: "center" }}>
+            <button
+              type="button"
+              className="buttonPrimary"
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  localStorage.setItem("tsu_emergency_contacts", JSON.stringify(emergencyList));
+                  setEmergencySaved(true);
+                  setMessage("Emergency contact numbers successfully updated!");
+                  setTimeout(() => setEmergencySaved(false), 3500);
+                }
+              }}
+            >
+              Save Emergency Contacts
+            </button>
+            <span className="mutedText">Edits take effect immediately in the campus emergency dialog.</span>
+          </div>
+        </section>
+      ) : (
       <div className="adminGrid">
         <section className="adminSidebar">
           {tab === "places" ? (
@@ -793,6 +918,6 @@ export function AdminDashboard({
           )}
         </section>
       </div>
+      )}
     </div>
   );
-}
