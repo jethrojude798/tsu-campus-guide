@@ -43,6 +43,15 @@ type PlainGuideStep = {
   isPlaceholder: boolean;
 };
 
+export type EmergencyContact = {
+  id: string;
+  name: string;
+  subtitle: string;
+  phone: string;
+  icon: string;
+  order: number;
+};
+
 type CampusStats = {
   placeCount: number;
   categoryCount: number;
@@ -51,6 +60,33 @@ type CampusStats = {
 };
 
 const fallbackData = {
+  emergencyContacts: [
+    {
+      id: "clinic",
+      name: "TSU Campus Clinic",
+      subtitle: "Emergency health response & ambulance",
+      phone: "08008782267",
+      icon: "🏥",
+      order: 1
+    },
+    {
+      id: "security",
+      name: "Campus Security Unit",
+      subtitle: "24/7 Security patrol & Gate officers",
+      phone: "08008787328",
+      icon: "🛡️",
+      order: 2
+    },
+    {
+      id: "student-affairs",
+      name: "Student Affairs & Safety",
+      subtitle: "Student welfare & Dean of Students helpline",
+      phone: "08008787883",
+      icon: "🎓",
+      order: 3
+    }
+  ],
+
   categories: [
     { id: "demo-academic", name: "Academic", slug: "academic", description: "Demo learning locations.", accent: "#b8d5b5" },
     { id: "demo-support", name: "Support", slug: "support", description: "Demo student services.", accent: "#e5ad54" },
