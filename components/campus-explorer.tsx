@@ -230,7 +230,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
         </div>
 
         {/* Floating Frosted Search Bar */}
-        <div className="map-search-group">
+        
           <div className="map-search">
             <label htmlFor="place-search" className="sr-only">Search campus buildings</label>
             <span aria-hidden="true" className="search-icon">
@@ -275,40 +275,10 @@ export function CampusExplorer({ data }: { data: CampusData }) {
             </button>
           </div>
 
-          {/* Map stage quick category pills */}
-          <div className="map-category-pills" role="toolbar" aria-label="Filter locations by category">
-            <button
-              type="button"
-              className={`map-pill ${category === "all" ? "is-active" : ""}`}
-              onClick={() => setCategory("all")}
-            >
-              All
-            </button>
-            {data.categories.map((item) => (
-              <button
-                type="button"
-                key={item.id}
-                className={`map-pill ${category === item.slug ? "is-active" : ""}`}
-                onClick={() => setCategory(item.slug)}
-              >
-                {item.name}
-              </button>
-            ))}
           </div>
-        </div>
 
         {/* Executive Map Layer Controller (Street / Satellite) & Emergency SOS */}
         <div className="map-top-actions">
-          <button
-            type="button"
-            className="emergency-sos-btn"
-            onClick={() => setShowEmergency(true)}
-            title="Campus Emergency Contacts"
-          >
-            <span className="sos-dot" />
-            <span>SOS Help</span>
-          </button>
-
           <div className="map-layer-dock" role="group" aria-label="Map style selector">
             <button
               type="button"
