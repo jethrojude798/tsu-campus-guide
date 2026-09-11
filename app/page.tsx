@@ -10,8 +10,14 @@ export default async function HomePage() {
     <main className="site-shell">
       <header className="topbar" aria-label="Primary navigation">
         <a className="brand" href="/" aria-label="TSU Campus Guide home">
-          <div className="brand-mark-glow">
-            <span className="brand-mark">TS</span>
+          <div className="brand-logo-container">
+            <img
+              src="/tsu-logo.png"
+              alt="Taraba State University Crest"
+              className="brand-logo-img"
+              width={40}
+              height={40}
+            />
           </div>
           <div className="brand-text">
             <strong>TSU CAMPUS GUIDE</strong>
