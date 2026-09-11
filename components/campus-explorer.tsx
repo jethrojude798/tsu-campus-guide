@@ -275,7 +275,6 @@ export function CampusExplorer({ data }: { data: CampusData }) {
             </button>
           </div>
 
-          </div>
 
         {/* Executive Map Layer Controller (Street / Satellite) & Emergency SOS */}
         <div className="map-top-actions">
