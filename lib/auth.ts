@@ -110,28 +110,33 @@ export async function getAdminSessionUser(): Promise<AdminUser | null> {
 }
 
 export async function authenticateAdmin(username: string, password: string) {
+  const demoUsername = process.env.DEMO_ADMIN_USERNAME ?? "demo-admin";
+  const demoPassword = process.env.DEMO_ADMIN_PASSWORD ?? "demo-password";
+
+  // Allow standard demo admin access regardless of environment or DB seed state
+  if (username === demoUsername && password === demoPassword) {
+    try {
+      const dbUser = await prisma.adminUser.findUnique({ where: { username: demoUsername } });
+      if (dbUser) return dbUser;
+    } catch {
+      // Ignore DB error and use fallback session
+    }
+    return {
+      id: "demo-admin-local",
+      username: demoUsername,
+      fullName: "TSU Demo Admin",
+      role: "admin",
+      passwordHash: ""
+    };
+  }
+
   try {
     const user = await prisma.adminUser.findUnique({ where: { username } });
-
     if (!user) return null;
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) return null;
-
     return user;
   } catch {
-    if (
-      process.env.NODE_ENV !== "production" &&
-      username === (process.env.DEMO_ADMIN_USERNAME ?? "demo-admin") &&
-      password === (process.env.DEMO_ADMIN_PASSWORD ?? "demo-password")
-    ) {
-      return {
-        id: "demo-admin-local",
-        username,
-        fullName: "TSU Demo Admin",
-        role: "admin",
-        passwordHash: ""
-      };
-    }
     return null;
   }
 }
