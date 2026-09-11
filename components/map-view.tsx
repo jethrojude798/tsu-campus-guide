@@ -10,6 +10,11 @@ type Place = { id: string; slug: string; name: string; categoryAccent: string; l
 function MapFocus({ places, selected, route, userLocation }: { places: Place[]; selected?: Place; route: [number, number][]; userLocation: [number, number] | null }) {
   const map = useMap();
   useEffect(() => {
+    if (map.attributionControl) {
+      map.attributionControl.setPrefix(false);
+    }
+  }, [map]);
+  useEffect(() => {
     if (places.length === 1) map.setView([places[0].latitude!, places[0].longitude!], 17);
     if (places.length > 1) map.fitBounds(places.map((place) => [place.latitude!, place.longitude!] as [number, number]), { padding: [35, 35] });
   }, [map, places]);
@@ -41,7 +46,7 @@ export default function MapView({ places, selectedSlug, onSelect, route, userLoc
   return <div className="osm-map-wrap">
     <MapContainer className="leaflet-map" center={center} zoom={mappedPlaces.length ? 16 : 2} scrollWheelZoom zoomControl>
       <TileLayer
-        attribution='&copy; <a href="https://www.maptiler.com/" target="_blank">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
+        attribution='<a href="https://www.maptiler.com/" target="_blank">&copy; MapTiler</a>'
         url={`https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=${maptilerApiKey}`}
       />
       <MapFocus places={mappedPlaces} selected={selected} route={route} userLocation={userLocation} />
