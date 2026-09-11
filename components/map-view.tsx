@@ -36,7 +36,10 @@ function MapFocus({
 
   useEffect(() => {
     if (initialFitDoneRef.current) return;
-    if (places.length === 1 && places[0].latitude != null && places[0].longitude != null) {
+    if (selected && selected.latitude != null && selected.longitude != null) {
+      map.setView([selected.latitude, selected.longitude], 17);
+      initialFitDoneRef.current = true;
+    } else if (places.length === 1 && places[0].latitude != null && places[0].longitude != null) {
       map.setView([places[0].latitude, places[0].longitude], 17);
       initialFitDoneRef.current = true;
     } else if (places.length > 1) {
@@ -46,7 +49,7 @@ function MapFocus({
       );
       initialFitDoneRef.current = true;
     }
-  }, [map, places]);
+  }, [map, places, selected]);
 
   useEffect(() => {
     if (selected?.latitude != null && selected.longitude != null) {
@@ -77,11 +80,11 @@ function markerIcon(place: Place, active: boolean) {
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const html = `<span class="map-marker ${active ? "is-active" : ""}" style="--marker:${place.categoryAccent}">${initials}</span>`;
+  const html = `<span class="map-marker is-active" style="--marker:${place.categoryAccent}">${initials}</span>`;
   return L.divIcon({
     className: "",
-    iconSize: active ? [44, 44] : [34, 34],
-    iconAnchor: active ? [22, 38] : [17, 30],
+    iconSize: [44, 44],
+    iconAnchor: [22, 38],
     html,
   });
 }
@@ -108,12 +111,9 @@ export default function MapView({
     [places]
   );
   const selected = mappedPlaces.find((place) => place.slug === selectedSlug);
-  const markers = useMemo(
-    () => mappedPlaces.map((place) => ({ ...place, icon: markerIcon(place, place.slug === selectedSlug) })),
-    [mappedPlaces, selectedSlug]
-  );
-  const center: [number, number] = selected
-    ? [selected.latitude!, selected.longitude!]
+
+  const center: [number, number] = selected && selected.latitude != null && selected.longitude != null
+    ? [selected.latitude, selected.longitude]
     : mappedPlaces[0]
     ? [mappedPlaces[0].latitude!, mappedPlaces[0].longitude!]
     : [8.900, 11.315];
@@ -131,21 +131,21 @@ export default function MapView({
 
   return (
     <div className="osm-map-wrap">
-      <MapContainer className="leaflet-map" center={center} zoom={mappedPlaces.length ? 16 : 15} scrollWheelZoom zoomControl>
+      <MapContainer className="leaflet-map" center={center} zoom={17} scrollWheelZoom zoomControl>
         <TileLayer
           attribution='<a href="https://www.maptiler.com/" target="_blank">&copy; MapTiler</a>'
           url={tileUrl}
           maxZoom={20}
         />
         <MapFocus places={mappedPlaces} selected={selected} route={route} userLocation={userLocation} />
-        {markers.map((place) => (
+        {/* Only show the pin for the currently selected location */}
+        {selected && selected.latitude != null && selected.longitude != null ? (
           <Marker
-            key={place.id}
-            position={[place.latitude!, place.longitude!]}
-            icon={place.icon}
-            eventHandlers={{ click: () => onSelect(place.slug) }}
+            key={selected.id}
+            position={[selected.latitude, selected.longitude]}
+            icon={markerIcon(selected, true)}
           />
-        ))}
+        ) : null}
         {route.length > 1 ? <Polyline positions={route} pathOptions={{ color: routeColor, weight: 6, opacity: 0.95 }} /> : null}
         {userLocation ? (
           <CircleMarker
