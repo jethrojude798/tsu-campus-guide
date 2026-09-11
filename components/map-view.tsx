@@ -36,12 +36,17 @@ export default function MapView({ places, selectedSlug, onSelect, route, userLoc
   const selected = mappedPlaces.find((place) => place.slug === selectedSlug);
   const markers = useMemo(() => mappedPlaces.map((place) => ({ ...place, icon: markerIcon(place, place.slug === selectedSlug) })), [mappedPlaces, selectedSlug]);
   const center: [number, number] = selected ? [selected.latitude!, selected.longitude!] : mappedPlaces[0] ? [mappedPlaces[0].latitude!, mappedPlaces[0].longitude!] : [0, 0];
+  const maptilerApiKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY || "hR8LymFQepr7bFVS845V";
+
   return <div className="osm-map-wrap">
     <MapContainer className="leaflet-map" center={center} zoom={mappedPlaces.length ? 16 : 2} scrollWheelZoom zoomControl>
-      <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <TileLayer
+        attribution='&copy; <a href="https://www.maptiler.com/" target="_blank">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
+        url={`https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=${maptilerApiKey}`}
+      />
       <MapFocus places={mappedPlaces} selected={selected} route={route} userLocation={userLocation} />
       {markers.map((place) => <Marker key={place.id} position={[place.latitude!, place.longitude!]} icon={place.icon} eventHandlers={{ click: () => onSelect(place.slug) }} />)}
-      {route.length > 1 ? <Polyline positions={route} pathOptions={{ color: "#168f83", weight: 6, opacity: 0.9 }} /> : null}
+      {route.length > 1 ? <Polyline positions={route} pathOptions={{ color: "#166f83", weight: 6, opacity: 0.9 }} /> : null}
       {userLocation ? <CircleMarker center={userLocation} radius={8} pathOptions={{ color: "#ffffff", weight: 3, fillColor: "#f2a93b", fillOpacity: 1 }} /> : null}
     </MapContainer>
   </div>;
