@@ -467,6 +467,24 @@ export function CampusExplorer({ data }: { data: CampusData }) {
           ))}
         </div>
 
+        {/* Campus Emergency Assistance Quick Card */}
+        <button
+          type="button"
+          className="drawer-emergency-card"
+          onClick={() => setShowEmergency(true)}
+          title="Campus Emergency Contacts"
+        >
+          <div className="drawer-emergency-icon">
+            <span className="sos-dot" />
+            <span>🚨</span>
+          </div>
+          <div className="drawer-emergency-copy">
+            <strong>Campus Emergency Help</strong>
+            <small>Quick dial Clinic, Security & Student Affairs</small>
+          </div>
+          <span className="emergency-arrow" aria-hidden="true">Call →</span>
+        </button>
+
         {/* New Student Guide Anchor Card */}
         <a className="new-here-link" href="#guide">
           <div className="guide-dot">
