@@ -1455,73 +1455,188 @@ button {
 }
 
 
-/* --- Drawer Emergency Card --- */
+/* --- Drawer Emergency Card (Executive / Glassmorphic Redesign) --- */
 .drawer-emergency-card {
+  all: unset;
+  box-sizing: border-box;
   display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  padding: 0.85rem 1rem;
-  border-radius: 0.9rem;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.28);
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+  margin-top: 0.85rem;
+  padding: 0.9rem 1.05rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.05) 50%, rgba(15, 23, 42, 0.35) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.32);
+  box-shadow: 0 4px 22px -3px rgba(239, 68, 68, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   color: var(--text-main);
   cursor: pointer;
-  width: 100%;
   text-align: left;
-  margin-top: 0.75rem;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.drawer-emergency-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.6), transparent);
 }
 
 .drawer-emergency-card:hover {
-  background: rgba(239, 68, 68, 0.16);
-  border-color: rgba(239, 68, 68, 0.5);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 50%, rgba(15, 23, 42, 0.45) 100%);
+  border-color: rgba(239, 68, 68, 0.55);
+  box-shadow: 0 8px 28px -4px rgba(239, 68, 68, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.drawer-emergency-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  position: relative;
+}
+
+.sos-pulse-ring {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.7);
+  animation: beaconPing 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.sos-dot-solid {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+}
+
+@keyframes beaconPing {
+  75%, 100% {
+    transform: translateY(-50%) scale(2.4);
+    opacity: 0;
+  }
+}
+
+.sos-badge-text {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f87171;
+}
+
+.drawer-emergency-main {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
 }
 
 .drawer-emergency-icon {
-  position: relative;
   width: 36px;
   height: 36px;
-  border-radius: 0.6rem;
+  border-radius: 0.7rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
-  background: rgba(239, 68, 68, 0.14);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.22), rgba(220, 38, 38, 0.1));
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #ef4444;
   flex-shrink: 0;
+  transition: transform 0.25s ease;
 }
 
-.drawer-emergency-icon .sos-dot {
-  position: absolute;
-  top: 4px;
-  right: 4px;
+.drawer-emergency-card:hover .drawer-emergency-icon {
+  transform: scale(1.08);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.32), rgba(220, 38, 38, 0.18));
 }
 
 .drawer-emergency-copy {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
 }
 
-.drawer-emergency-copy strong {
+.drawer-emergency-title {
   font-size: 0.86rem;
   font-weight: 700;
   color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
 }
 
-.drawer-emergency-copy small {
-  font-size: 0.74rem;
+.drawer-emergency-sub {
+  font-size: 0.72rem;
   color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.emergency-arrow {
-  font-size: 0.75rem;
+.drawer-emergency-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.55rem;
+  font-size: 0.73rem;
   font-weight: 700;
   color: #ef4444;
-  padding: 0.3rem 0.65rem;
-  border-radius: 0.5rem;
   background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  border: 1px solid rgba(239, 68, 68, 0.28);
   white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.drawer-emergency-card:hover .drawer-emergency-action {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.4);
+}
+
+.drawer-emergency-card:hover .drawer-emergency-action svg {
+  transform: translateX(2px);
+}
+
+.drawer-emergency-action svg {
+  transition: transform 0.2s ease;
+}
+
+/* Light Theme Adaptations */
+html[data-theme="light"] .drawer-emergency-card {
+  background: linear-gradient(135deg, rgba(254, 242, 242, 0.95) 0%, rgba(254, 226, 226, 0.65) 100%);
+  border-color: rgba(239, 68, 68, 0.28);
+  box-shadow: 0 4px 18px -2px rgba(239, 68, 68, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+html[data-theme="light"] .drawer-emergency-card:hover {
+  background: linear-gradient(135deg, rgba(254, 242, 242, 1) 0%, rgba(254, 202, 202, 0.8) 100%);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+html[data-theme="light"] .drawer-emergency-title {
+  color: #1e293b;
+}
+
+html[data-theme="light"] .drawer-emergency-sub {
+  color: #64748b;
 }
