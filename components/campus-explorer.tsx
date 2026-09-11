@@ -561,32 +561,49 @@ export function CampusExplorer({ data }: { data: CampusData }) {
             </div>
 
             <div className="emergency-contacts-list">
-              <a href="tel:08008782267" className="emergency-contact-card">
-                <div className="contact-icon clinic-bg">🏥</div>
-                <div className="contact-info">
-                  <strong>TSU Campus Clinic</strong>
-                  <span>Emergency health response & ambulance</span>
-                </div>
-                <span className="contact-action">Call Now</span>
-              </a>
-
-              <a href="tel:08008787328" className="emergency-contact-card">
-                <div className="contact-icon security-bg">🛡️</div>
-                <div className="contact-info">
-                  <strong>Campus Security Unit</strong>
-                  <span>24/7 Security patrol & Gate officers</span>
-                </div>
-                <span className="contact-action">Call Now</span>
-              </a>
-
-              <a href="tel:08008783326" className="emergency-contact-card">
-                <div className="contact-icon affairs-bg">🎓</div>
-                <div className="contact-info">
-                  <strong>Student Affairs Helpdesk</strong>
-                  <span>Hostel welfare & emergency counseling</span>
-                </div>
-                <span className="contact-action">Call Now</span>
-              </a>
+              {(data as any).emergencyContacts && (data as any).emergencyContacts.length > 0 ? (
+                (data as any).emergencyContacts.map((contact: any) => (
+                  <a
+                    key={contact.id}
+                    href={`tel:${contact.phone.replace(/[^0-9+]/g, "")}`}
+                    className="emergency-contact-card"
+                  >
+                    <div className="contact-icon clinic-bg">{contact.icon || "🚨"}</div>
+                    <div className="contact-info">
+                      <strong>{contact.name}</strong>
+                      <span>{contact.subtitle} — {contact.phone}</span>
+                    </div>
+                    <span className="contact-action">Call Now</span>
+                  </a>
+                ))
+              ) : (
+                <>
+                  <a href="tel:08008782267" className="emergency-contact-card">
+                    <div className="contact-icon clinic-bg">🏥</div>
+                    <div className="contact-info">
+                      <strong>TSU Campus Clinic</strong>
+                      <span>Emergency health response & ambulance</span>
+                    </div>
+                    <span className="contact-action">Call Now</span>
+                  </a>
+                  <a href="tel:08008787328" className="emergency-contact-card">
+                    <div className="contact-icon security-bg">🛡️</div>
+                    <div className="contact-info">
+                      <strong>Campus Security Unit</strong>
+                      <span>24/7 Security patrol & Gate officers</span>
+                    </div>
+                    <span className="contact-action">Call Now</span>
+                  </a>
+                  <a href="tel:08008783326" className="emergency-contact-card">
+                    <div className="contact-icon affairs-bg">🎓</div>
+                    <div className="contact-info">
+                      <strong>Student Affairs Helpdesk</strong>
+                      <span>Hostel welfare & emergency counseling</span>
+                    </div>
+                    <span className="contact-action">Call Now</span>
+                  </a>
+                </>
+              )}
             </div>
 
             <p className="emergency-note">
