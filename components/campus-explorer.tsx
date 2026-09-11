@@ -473,16 +473,33 @@ export function CampusExplorer({ data }: { data: CampusData }) {
           className="drawer-emergency-card"
           onClick={() => setShowEmergency(true)}
           title="Campus Emergency Contacts"
+          aria-label="Campus Emergency Help & Support"
         >
-          <div className="drawer-emergency-icon">
-            <span className="sos-dot" />
-            <span>🚨</span>
+          <div className="drawer-emergency-badge">
+            <span className="sos-pulse-ring" />
+            <span className="sos-dot-solid" />
+            <span className="sos-badge-text">24/7 HELPLINE</span>
           </div>
-          <div className="drawer-emergency-copy">
-            <strong>Campus Emergency Help</strong>
-            <small>Quick dial Clinic, Security & Student Affairs</small>
+          <div className="drawer-emergency-main">
+            <div className="drawer-emergency-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="M12 8v4"/>
+                <path d="M12 16h.01"/>
+              </svg>
+            </div>
+            <div className="drawer-emergency-copy">
+              <div className="drawer-emergency-title">Emergency & Medical SOS</div>
+              <div className="drawer-emergency-sub">Clinic, Security & Student Support</div>
+            </div>
+            <div className="drawer-emergency-action">
+              <span>Dial</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14"/>
+                <path d="M12 5l7 7-7 7"/>
+              </svg>
+            </div>
           </div>
-          <span className="emergency-arrow" aria-hidden="true">Call →</span>
         </button>
 
         {/* New Student Guide Anchor Card */}
