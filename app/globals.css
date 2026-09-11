@@ -1184,10 +1184,31 @@ button {
 
 /* Responsive Media Queries */
 @media (max-width: 960px) {
-  .trail-app { grid-template-columns: 1fr; }
-  .trail-drawer { position: static; min-height: 0; }
-  .place-list { max-height: 380px; }
-  .guide-section { grid-template-columns: 1fr; }
+  .trail-app {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 16px;
+  }
+  .map-stage, .trail-drawer {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    position: static;
+  }
+  .map-stage {
+    position: relative !important;
+  }
+  .trail-drawer {
+    min-height: 0;
+  }
+  .place-list {
+    max-height: 380px;
+  }
+  .guide-section {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1298,6 +1319,7 @@ button {
     display: none;
   }
 
+
   .place-sheet {
     right: 8px;
     left: 8px;
@@ -1305,8 +1327,10 @@ button {
     padding: 14px;
     border-radius: 18px;
     max-height: 56%;
+    max-width: calc(100% - 16px);
     overflow-y: auto;
   }
+
   .place-sheet h2 {
     font-size: 17px;
   }
@@ -1407,6 +1431,138 @@ button {
   }
 }
 
+
+
+@media (max-width: 480px) {
+  .site-shell, .adminShell {
+    padding: 8px 10px 40px;
+  }
+
+  .topbar {
+    padding: 6px 0 10px;
+    gap: 6px;
+  }
+  .brand-logo-img {
+    width: 28px;
+    height: 28px;
+  }
+  .brand-text strong {
+    font-size: 11px;
+    max-width: 140px;
+  }
+
+  .map-stage {
+    min-height: 400px;
+    height: 60vh;
+    max-height: 500px;
+    border-radius: 16px;
+  }
+  .leaflet-map {
+    min-height: 400px;
+  }
+
+  .map-brand {
+    top: 8px;
+    left: 8px;
+    padding: 3px 6px;
+    gap: 5px;
+  }
+  .map-brand-logo .brand-logo-img {
+    width: 20px;
+    height: 20px;
+  }
+  .map-brand-text strong {
+    font-size: 9px;
+  }
+  .live-status-pill {
+    font-size: 7.5px;
+    padding: 2px 5px;
+  }
+
+  .map-top-actions {
+    top: 8px;
+    right: 8px;
+  }
+  .map-layer-dock {
+    top: 8px;
+    right: 8px;
+    padding: 2px;
+  }
+  .map-layer-tab {
+    padding: 4px 6px;
+    font-size: 9.5px;
+    gap: 3px;
+  }
+
+  .map-search {
+    top: 44px;
+    left: 8px;
+    right: 8px;
+    min-height: 36px;
+    padding: 2px 4px 2px 8px;
+  }
+  .map-search input {
+    font-size: 11px;
+  }
+
+  .leaflet-control-zoom {
+    margin-top: 88px !important;
+    margin-right: 8px !important;
+  }
+
+  .place-sheet {
+    right: 6px;
+    left: 6px;
+    bottom: 6px;
+    padding: 12px;
+    border-radius: 14px;
+    max-height: 54%;
+  }
+  .place-sheet h2 {
+    font-size: 15px;
+  }
+  .place-description {
+    font-size: 10.5px;
+  }
+
+  .direction-button,
+  .share-place-button {
+    font-size: 10px;
+    padding: 5px 8px;
+    min-height: 32px;
+  }
+
+  .trail-drawer {
+    padding: 12px;
+    border-radius: 16px;
+    margin-top: 10px;
+  }
+  .drawer-header h2 {
+    font-size: 16px;
+  }
+  .place-list {
+    max-height: 280px;
+  }
+  .place-row {
+    padding: 7px 8px;
+    gap: 8px;
+  }
+  .place-row-copy strong {
+    font-size: 11.5px;
+  }
+  .place-row-copy small {
+    font-size: 9.5px;
+  }
+
+  .guide-section {
+    padding: 16px 12px;
+    border-radius: 16px;
+    margin-top: 16px;
+  }
+  .guide-heading h2 {
+    font-size: 17px;
+  }
+}
 
 /* --- Map Category Pills & Search Group --- */
 .map-search-group {
