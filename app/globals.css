@@ -110,6 +110,33 @@ button {
   gap: 16px;
 }
 
+
+.brand-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.brand-logo-img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+  border-radius: 8px;
+  transition: transform 0.2s ease;
+}
+
+.brand:hover .brand-logo-img {
+  transform: scale(1.05);
+}
+
+.map-brand-logo .brand-logo-img {
+  width: 32px;
+  height: 32px;
+}
+
 .brand {
   display: flex;
   align-items: center;
