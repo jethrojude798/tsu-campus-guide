@@ -21,6 +21,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [isLiveLocation, setIsLiveLocation] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
+  const [isSatellite, setIsSatellite] = useState(false);
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
 
   const filteredPlaces = useMemo(() => data.places.filter((place) => {
@@ -95,8 +96,21 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   return <div id="explore" className="trail-app">
     <section className="map-stage" aria-label="Campus trail map">
       <div className="map-brand"><span className="brand-mark">TS</span><div><strong>Campus trail</strong><span>Taraba State University</span></div></div>
-      <div className="map-search"><label htmlFor="place-search" className="sr-only">Search for a building</label><span aria-hidden="true">/</span><input id="place-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search for a building..." /><button type="button" className="location-button" aria-label="Show my live location" onClick={showLiveLocation}>+</button></div>
-      <div className="map-canvas"><MapView places={places} selectedSlug={selected?.slug ?? ""} onSelect={setSelectedSlug} route={routeGeometry} userLocation={userLocation} /></div>
+      <div className="map-search"><label htmlFor="place-search" className="sr-only">Search for a building</label><span aria-hidden="true">/</span><input id="place-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search for a building..." /><button
+          type="button"
+          className={`satellite-switch ${isSatellite ? "is-active" : ""}`}
+          onClick={() => setIsSatellite((prev) => !prev)}
+          role="switch"
+          aria-checked={isSatellite}
+          title={isSatellite ? "Switch to Street view" : "Switch to Satellite view"}
+        >
+          <span className="satellite-switch-label">Satellite</span>
+          <span className="satellite-switch-track">
+            <span className="satellite-switch-thumb" />
+          </span>
+        </button>
+        <button type="button" className="location-button" aria-label="Show my live location" onClick={showLiveLocation}>+</button></div>
+      <div className="map-canvas"><MapView places={places} selectedSlug={selected?.slug ?? ""} onSelect={setSelectedSlug} route={routeGeometry} userLocation={userLocation} isSatellite={isSatellite} /></div>
       {routeSummary ? <div className="walk-badge"><span className="walk-icon">+</span> Walking route <strong>{routeSummary.minutes} min</strong><span>{routeSummary.distanceKm} km</span></div> : null}
       <div className="map-legend"><span><i className="legend-dot orange" /> campus location</span><span><i className="legend-dot teal" /> selected</span></div>
       {selected ? <article className="place-sheet">
