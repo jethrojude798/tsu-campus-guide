@@ -2,25 +2,50 @@
 
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { CircleMarker, MapContainer, Marker, Polyline, TileLayer, useMap } from "react-leaflet";
 
 type Place = { id: string; slug: string; name: string; categoryAccent: string; latitude: number | null; longitude: number | null };
 
 function MapFocus({ places, selected, route, userLocation }: { places: Place[]; selected?: Place; route: [number, number][]; userLocation: [number, number] | null }) {
   const map = useMap();
+  const initialFitDoneRef = useRef(false);
+
   useEffect(() => {
     if (map.attributionControl) {
       map.attributionControl.setPrefix(false);
     }
   }, [map]);
+
   useEffect(() => {
-    if (places.length === 1) map.setView([places[0].latitude!, places[0].longitude!], 17);
-    if (places.length > 1) map.fitBounds(places.map((place) => [place.latitude!, place.longitude!] as [number, number]), { padding: [35, 35] });
+    if (initialFitDoneRef.current) return;
+    if (places.length === 1 && places[0].latitude != null && places[0].longitude != null) {
+      map.setView([places[0].latitude, places[0].longitude], 17);
+      initialFitDoneRef.current = true;
+    } else if (places.length > 1) {
+      map.fitBounds(places.map((place) => [place.latitude!, place.longitude!] as [number, number]), { padding: [35, 35] });
+      initialFitDoneRef.current = true;
+    }
   }, [map, places]);
-  useEffect(() => { if (selected?.latitude != null && selected.longitude != null) map.flyTo([selected.latitude, selected.longitude], 18, { duration: 0.45 }); }, [map, selected]);
-  useEffect(() => { if (userLocation && route.length < 2) map.flyTo(userLocation, 18, { duration: 0.45 }); }, [map, route.length, userLocation]);
-  useEffect(() => { if (route.length > 1) map.fitBounds(route, { padding: [45, 45] }); }, [map, route]);
+
+  useEffect(() => {
+    if (selected?.latitude != null && selected.longitude != null) {
+      map.flyTo([selected.latitude, selected.longitude], 18, { duration: 0.45 });
+    }
+  }, [map, selected]);
+
+  useEffect(() => {
+    if (userLocation && route.length < 2) {
+      map.flyTo(userLocation, 18, { duration: 0.45 });
+    }
+  }, [map, route.length, userLocation]);
+
+  useEffect(() => {
+    if (route.length > 1) {
+      map.fitBounds(route, { padding: [45, 45] });
+    }
+  }, [map, route]);
+
   return null;
 }
 
@@ -36,46 +61,58 @@ function markerIcon(place: Place, active: boolean) {
   return L.divIcon({ className: "", iconSize: active ? [44, 44] : [34, 34], iconAnchor: active ? [22, 38] : [17, 30], html });
 }
 
-export default function MapView({ places, selectedSlug, onSelect, route, userLocation }: { places: Place[]; selectedSlug: string; onSelect: (slug: string) => void; route: [number, number][]; userLocation: [number, number] | null }) {
-  const [layerType, setLayerType] = useState<"streets" | "satellite">("streets");
-  const mappedPlaces = places.filter((place) => place.latitude !== null && place.longitude !== null);
+export default function MapView({
+  places,
+  selectedSlug,
+  onSelect,
+  route,
+  userLocation,
+  isSatellite = false,
+}: {
+  places: Place[];
+  selectedSlug: string;
+  onSelect: (slug: string) => void;
+  route: [number, number][];
+  userLocation: [number, number] | null;
+  isSatellite?: boolean;
+}) {
+  const mappedPlaces = useMemo(
+    () => places.filter((place) => place.latitude !== null && place.longitude !== null),
+    [places]
+  );
   const selected = mappedPlaces.find((place) => place.slug === selectedSlug);
-  const markers = useMemo(() => mappedPlaces.map((place) => ({ ...place, icon: markerIcon(place, place.slug === selectedSlug) })), [mappedPlaces, selectedSlug]);
-  const center: [number, number] = selected ? [selected.latitude!, selected.longitude!] : mappedPlaces[0] ? [mappedPlaces[0].latitude!, mappedPlaces[0].longitude!] : [0, 0];
+  const markers = useMemo(
+    () => mappedPlaces.map((place) => ({ ...place, icon: markerIcon(place, place.slug === selectedSlug) })),
+    [mappedPlaces, selectedSlug]
+  );
+  const center: [number, number] = selected
+    ? [selected.latitude!, selected.longitude!]
+    : mappedPlaces[0]
+    ? [mappedPlaces[0].latitude!, mappedPlaces[0].longitude!]
+    : [0, 0];
   const maptilerApiKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY || "hR8LymFQepr7bFVS845V";
 
-  const tileUrl =
-    layerType === "satellite"
-      ? `https://api.maptiler.com/maps/hybrid/256/{z}/{x}/{y}.jpg?key=${maptilerApiKey}`
-      : `https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=${maptilerApiKey}`;
+  const tileUrl = isSatellite
+    ? `https://api.maptiler.com/maps/hybrid/256/{z}/{x}/{y}.jpg?key=${maptilerApiKey}`
+    : `https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=${maptilerApiKey}`;
 
   return (
     <div className="osm-map-wrap">
-      <div className="map-view-toggle" role="group" aria-label="Map view mode">
-        <button
-          type="button"
-          className={layerType === "streets" ? "is-active" : ""}
-          onClick={() => setLayerType("streets")}
-        >
-          Street
-        </button>
-        <button
-          type="button"
-          className={layerType === "satellite" ? "is-active" : ""}
-          onClick={() => setLayerType("satellite")}
-        >
-          Satellite
-        </button>
-      </div>
       <MapContainer className="leaflet-map" center={center} zoom={mappedPlaces.length ? 16 : 2} scrollWheelZoom zoomControl>
         <TileLayer
-          key={layerType}
           attribution='<a href="https://www.maptiler.com/" target="_blank">&copy; MapTiler</a>'
           url={tileUrl}
           maxZoom={20}
         />
         <MapFocus places={mappedPlaces} selected={selected} route={route} userLocation={userLocation} />
-        {markers.map((place) => <Marker key={place.id} position={[place.latitude!, place.longitude!]} icon={place.icon} eventHandlers={{ click: () => onSelect(place.slug) }} />)}
+        {markers.map((place) => (
+          <Marker
+            key={place.id}
+            position={[place.latitude!, place.longitude!]}
+            icon={place.icon}
+            eventHandlers={{ click: () => onSelect(place.slug) }}
+          />
+        ))}
         {route.length > 1 ? <Polyline positions={route} pathOptions={{ color: "#166f83", weight: 6, opacity: 0.9 }} /> : null}
         {userLocation ? <CircleMarker center={userLocation} radius={8} pathOptions={{ color: "#ffffff", weight: 3, fillColor: "#f2a93b", fillOpacity: 1 }} /> : null}
       </MapContainer>
