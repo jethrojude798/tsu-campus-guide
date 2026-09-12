@@ -32,7 +32,14 @@ type CampusData = {
   guideSteps: GuideStep[];
   stats: { placeCount: number; categoryCount: number; guideStepCount: number; placeholderShare: number };
 };
-type RouteSummary = { minutes: number; distanceKm: string };
+type RouteStep = {
+  instruction: string;
+  distanceMeters: number;
+  durationSeconds: number;
+  type: string;
+  modifier?: string;
+};
+type RouteSummary = { minutes: number; distanceKm: string; travelMode: "foot" | "car" };
 
 const MapView = dynamic(() => import("./map-view"), {
   ssr: false,
@@ -53,10 +60,65 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   const [isSatellite, setIsSatellite] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [travelMode, setTravelMode] = useState<"foot" | "car">("foot");
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [routeSteps, setRouteSteps] = useState<RouteStep[]>([]);
+  const [localEmergency, setLocalEmergency] = useState<any[] | null>(null);
   const [showEmergency, setShowEmergency] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
+  // Load admin emergency contacts if saved in localStorage
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const saved = localStorage.getItem("tsu_emergency_contacts");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setLocalEmergency(parsed);
+        }
+      }
+    } catch {}
+  }, []);
+
+  function speakText(text: string) {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn("Speech error:", e);
+      setIsSpeaking(false);
+    }
+  }
+
+  function formatManeuver(type: string, modifier: string | undefined, name: string, distance: number): string {
+    const road = name && name.trim().length > 0 ? ` onto ${name}` : "";
+    const distText = distance > 0 ? ` in ${Math.round(distance)} meters` : "";
+    if (type === "depart") return `Head out${road}`;
+    if (type === "arrive") return "You have reached your destination";
+    if (type === "turn") {
+      if (modifier === "left") return `Turn left${road}${distText}`;
+      if (modifier === "right") return `Turn right${road}${distText}`;
+      if (modifier === "sharp left") return `Make a sharp left${road}${distText}`;
+      if (modifier === "sharp right") return `Make a sharp right${road}${distText}`;
+      if (modifier === "slight left") return `Keep slight left${road}${distText}`;
+      if (modifier === "slight right") return `Keep slight right${road}${distText}`;
+      return `Turn ${modifier ?? ""}${road}${distText}`;
+    }
+    if (type === "fork") return `Take the fork ${modifier ?? "ahead"}${road}`;
+    if (type === "continue" || type === "new name") return `Continue straight${road}${distText}`;
+    if (modifier) return `Turn ${modifier}${road}${distText}`;
+    return `Proceed ahead${road}${distText}`;
+  }
 
   // Check URL on initial mount for direct place link (e.g. ?place=health-sciences)
   useEffect(() => {
@@ -163,13 +225,17 @@ export function CampusExplorer({ data }: { data: CampusData }) {
     }
   }
 
-  async function requestWalkingRoute() {
+  async function requestRoute(mode: "foot" | "car" = travelMode) {
     if (!selected) return;
     setRouteMessage(null);
     setRouteSummary(null);
     setRouteGeometry([]);
+    setRouteSteps([]);
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
     if (selected.latitude == null || selected.longitude == null) {
-      setRouteMessage("This destination needs verified coordinates before walking directions can be calculated.");
+      setRouteMessage("This destination needs verified coordinates before directions can be calculated.");
       return;
     }
     if (!navigator.geolocation) {
@@ -183,33 +249,68 @@ export function CampusExplorer({ data }: { data: CampusData }) {
           setUserLocation([position.coords.latitude, position.coords.longitude]);
           const start = `${position.coords.longitude},${position.coords.latitude}`;
           const end = `${selected.longitude},${selected.latitude}`;
+          const profile = mode === "car" ? "routed-car" : "routed-foot";
           const response = await fetch(
-            `https://routing.openstreetmap.de/routed-foot/route/v1/driving/${start};${end}?overview=full&geometries=geojson`
+            `https://routing.openstreetmap.de/${profile}/route/v1/driving/${start};${end}?overview=full&geometries=geojson&steps=true`
           );
           if (!response.ok) throw new Error("Routing service unavailable");
           const result = (await response.json()) as {
-            routes?: Array<{ distance: number; duration: number; geometry?: { coordinates: Array<[number, number]> } }>;
+            routes?: Array<{
+              distance: number;
+              duration: number;
+              geometry?: { coordinates: Array<[number, number]> };
+              legs?: Array<{
+                steps?: Array<{
+                  name?: string;
+                  distance: number;
+                  duration: number;
+                  maneuver: { type: string; modifier?: string };
+                }>;
+              }>;
+            }>;
           };
           const route = result.routes?.[0];
-          if (!route) throw new Error("No walking route found");
+          if (!route) throw new Error("No route found");
           setRouteGeometry(
             route.geometry?.coordinates.map(([longitude, latitude]) => [latitude, longitude] as [number, number]) ?? []
           );
+          const steps: RouteStep[] = [];
+          const legSteps = route.legs?.[0]?.steps ?? [];
+          for (const s of legSteps) {
+            const instr = formatManeuver(s.maneuver?.type, s.maneuver?.modifier, s.name ?? "", s.distance);
+            steps.push({
+              instruction: instr,
+              distanceMeters: Math.round(s.distance),
+              durationSeconds: Math.round(s.duration),
+              type: s.maneuver?.type ?? "turn",
+              modifier: s.maneuver?.modifier,
+            });
+          }
+          setRouteSteps(steps);
+          const minutes = Math.max(1, Math.round(route.duration / 60));
+          const distanceKm = (route.distance / 1000).toFixed(2);
           setRouteSummary({
-            minutes: Math.max(1, Math.round(route.duration / 60)),
-            distanceKm: (route.distance / 1000).toFixed(2),
+            minutes,
+            distanceKm,
+            travelMode: mode,
           });
+
+          if (voiceEnabled && steps.length > 0) {
+            const modeWord = mode === "car" ? "Driving" : "Walking";
+            const firstStep = steps[0].instruction;
+            speakText(`${modeWord} directions to ${selected.name} are ready. Total distance is ${distanceKm} kilometers, about ${minutes} minutes. ${firstStep}.`);
+          }
         } catch {
-          setRouteMessage("We could not calculate a walking route right now. Please try again.");
+          setRouteMessage(`Could not calculate ${mode === "car" ? "driving" : "walking"} route. If you are far from campus, try switching to Vehicle (Driving) mode.`);
         } finally {
           setIsRouting(false);
         }
       },
       () => {
-        setRouteMessage("Location permission was not granted. Allow location access to get walking directions.");
         setIsRouting(false);
+        setRouteMessage("Location permission was not granted. Please allow GPS access in your browser to get directions from your current location.");
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
     );
   }
 
@@ -378,14 +479,90 @@ export function CampusExplorer({ data }: { data: CampusData }) {
           />
         </div>
 
-        {/* Walking Badge */}
+        {/* Route Status & Audio Guidance Dock */}
         {routeSummary ? (
-          <div className="walk-badge">
-            <span className="walk-icon">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="2"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg>
-            </span>
-            Walking route <strong>{routeSummary.minutes} min</strong>
-            <span>({routeSummary.distanceKm} km)</span>
+          <div className="route-guidance-card" role="region" aria-label="Route and voice directions">
+            <div className="route-guidance-header">
+              <div className="route-mode-pill">
+                {routeSummary.travelMode === "car" ? "🚗 Driving" : "🚶 Walking"} route
+                <strong>{routeSummary.minutes} min</strong>
+                <span>({routeSummary.distanceKm} km)</span>
+              </div>
+              <div className="route-voice-actions">
+                <button
+                  type="button"
+                  className={`voice-toggle-btn ${voiceEnabled ? "is-active" : ""}`}
+                  onClick={() => {
+                    const next = !voiceEnabled;
+                    setVoiceEnabled(next);
+                    if (!next && typeof window !== "undefined" && "speechSynthesis" in window) {
+                      window.speechSynthesis.cancel();
+                    } else if (next && routeSteps.length > 0) {
+                      speakText(`Navigating to ${selected?.name}. ${routeSteps[0]?.instruction}`);
+                    }
+                  }}
+                  title={voiceEnabled ? "Voice guidance active (click to mute)" : "Voice guidance muted (click to unmute)"}
+                  aria-label="Toggle voice guidance"
+                >
+                  {voiceEnabled ? (
+                    <>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                      <span>{isSpeaking ? "Speaking..." : "Voice On"}</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                      <span>Voice Muted</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="route-clear-btn"
+                  onClick={() => {
+                    setRouteSummary(null);
+                    setRouteGeometry([]);
+                    setRouteSteps([]);
+                    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+                      window.speechSynthesis.cancel();
+                    }
+                  }}
+                  title="Close route"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Turn by turn step preview list */}
+            {routeSteps.length > 0 ? (
+              <details className="route-steps-details">
+                <summary className="route-steps-summary">
+                  <span>View {routeSteps.length} turn-by-turn directions</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </summary>
+                <div className="route-steps-list">
+                  {routeSteps.map((step, idx) => (
+                    <div key={idx} className="route-step-item">
+                      <span className="step-num">{idx + 1}</span>
+                      <div className="step-info">
+                        <strong>{step.instruction}</strong>
+                        {step.distanceMeters > 0 ? <small>{step.distanceMeters} m</small> : null}
+                      </div>
+                      <button
+                        type="button"
+                        className="step-speak-btn"
+                        onClick={() => speakText(step.instruction)}
+                        title="Read step out loud"
+                        aria-label={`Read step ${idx + 1}`}
+                      >
+                        🔊
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            ) : null}
           </div>
         ) : null}
 
@@ -407,18 +584,49 @@ export function CampusExplorer({ data }: { data: CampusData }) {
             <p className="place-description">{selected.shortDescription}</p>
 
             <div className="place-actions">
-              <button type="button" className="direction-button" onClick={requestWalkingRoute} disabled={isRouting}>
-                {isRouting ? (
-                  <>
-                    <span className="button-spinner" /> Finding route...
-                  </>
-                ) : (
-                  <>
-                    <span>Get walking route</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                  </>
-                )}
-              </button>
+              <div className="direction-control-group">
+                <div className="travel-mode-switcher" role="radiogroup" aria-label="Travel mode">
+                  <button
+                    type="button"
+                    className={`mode-btn ${travelMode === "foot" ? "is-selected" : ""}`}
+                    onClick={() => {
+                      setTravelMode("foot");
+                      if (routeSummary) requestRoute("foot");
+                    }}
+                    title="Pedestrian / Walking navigation"
+                  >
+                    🚶 Walk
+                  </button>
+                  <button
+                    type="button"
+                    className={`mode-btn ${travelMode === "car" ? "is-selected" : ""}`}
+                    onClick={() => {
+                      setTravelMode("car");
+                      if (routeSummary) requestRoute("car");
+                    }}
+                    title="Vehicle / Driving navigation"
+                  >
+                    🚗 Drive
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="direction-button"
+                  onClick={() => requestRoute(travelMode)}
+                  disabled={isRouting}
+                >
+                  {isRouting ? (
+                    <>
+                      <span className="button-spinner" /> Finding route...
+                    </>
+                  ) : (
+                    <>
+                      <span>Get {travelMode === "car" ? "driving" : "walking"} directions</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </>
+                  )}
+                </button>
+              </div>
 
               <button
                 type="button"
@@ -614,8 +822,8 @@ export function CampusExplorer({ data }: { data: CampusData }) {
             </div>
 
             <div className="emergency-contacts-list">
-              {(data as any).emergencyContacts && (data as any).emergencyContacts.length > 0 ? (
-                (data as any).emergencyContacts.map((contact: any) => (
+              {((localEmergency && localEmergency.length > 0) ? localEmergency : (data as any).emergencyContacts) && (((localEmergency && localEmergency.length > 0) ? localEmergency : (data as any).emergencyContacts).length > 0) ? (
+                ((localEmergency && localEmergency.length > 0) ? localEmergency : (data as any).emergencyContacts).map((contact: any) => (
                   <a
                     key={contact.id}
                     href={`tel:${contact.phone.replace(/[^0-9+]/g, "")}`}
