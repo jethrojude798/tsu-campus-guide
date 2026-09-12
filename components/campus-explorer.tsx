@@ -364,7 +364,6 @@ export function CampusExplorer({ data }: { data: CampusData }) {
               ) : null}
             </div>
           </div>
-        </div>
 
         {/* Map Canvas */}
         <div className="map-canvas">
