@@ -67,6 +67,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   const [localEmergency, setLocalEmergency] = useState<any[] | null>(null);
   const [showEmergency, setShowEmergency] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isSheetExpanded, setIsSheetExpanded] = useState(false);
 
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
   // Load admin emergency contacts if saved in localStorage
@@ -321,57 +322,57 @@ export function CampusExplorer({ data }: { data: CampusData }) {
         {/* Floating Map Controls Header Overlay */}
         <div className="map-controls-overlay">
           <div className="map-controls-row">
-
-          <div className="map-search-row">
-            <div className="map-search">
-              <label htmlFor="place-search" className="sr-only">Search campus buildings</label>
-              <span aria-hidden="true" className="search-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
-                </svg>
-              </span>
-              <input
-                id="place-search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                placeholder="Search campus buildings, faculties, halls..."
-                autoComplete="off"
-              />
-              {query ? (
+            <div className="map-search-row">
+              <div className="map-search">
+                <label htmlFor="place-search" className="sr-only">Search campus buildings</label>
+                <span aria-hidden="true" className="search-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                  </svg>
+                </span>
+                <input
+                  id="place-search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  placeholder="Search campus buildings, faculties, halls..."
+                  autoComplete="off"
+                />
+                {query ? (
+                  <button
+                    type="button"
+                    className="search-clear-btn"
+                    onClick={() => setQuery("")}
+                    aria-label="Clear search"
+                    title="Clear search"
+                  >
+                    ×
+                  </button>
+                ) : null}
                 <button
                   type="button"
-                  className="search-clear-btn"
-                  onClick={() => setQuery("")}
-                  aria-label="Clear search"
-                  title="Clear search"
+                  className={`location-button ${isLiveLocation ? "is-active" : ""} ${isLocating ? "is-locating" : ""}`}
+                  aria-label="Show my live location"
+                  onClick={showLiveLocation}
+                  title="Locate my position on campus"
                 >
-                  ×
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <circle cx="12" cy="12" r="8" />
+                    <line x1="12" y1="2" x2="12" y2="5" />
+                    <line x1="12" y1="19" x2="12" y2="22" />
+                    <line x1="2" y1="12" x2="5" y2="12" />
+                    <line x1="19" y1="12" x2="22" y2="12" />
+                  </svg>
                 </button>
-              ) : null}
-              <button
-                type="button"
-                className={`location-button ${isLiveLocation ? "is-active" : ""} ${isLocating ? "is-locating" : ""}`}
-                aria-label="Show my live location"
-                onClick={showLiveLocation}
-                title="Locate my position on campus"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="3" />
-                  <circle cx="12" cy="12" r="8" />
-                  <line x1="12" y1="2" x2="12" y2="5" />
-                  <line x1="12" y1="19" x2="12" y2="22" />
-                  <line x1="2" y1="12" x2="5" y2="12" />
-                  <line x1="19" y1="12" x2="22" y2="12" />
-                </svg>
-              </button>
-            </div>
-              {/* Floating Instant Search Autocomplete Dropdown */}
+              </div>
+
+              {/* Instant Search Dropdown */}
               {(isSearchFocused || query.trim().length > 0) ? (
                 <div className="search-dropdown-menu" role="listbox">
                   <div className="search-dropdown-header">
-                    <span>{query.trim() ? `Locations matching “{query}” ({filteredPlaces.length})` : `All campus locations ({filteredPlaces.length})`}</span>
+                    <span>{query.trim() ? `Locations matching "${query}" (${filteredPlaces.length})` : `All campus locations (${filteredPlaces.length})`}</span>
                     <button
                       type="button"
                       className="search-dropdown-close"
@@ -382,13 +383,14 @@ export function CampusExplorer({ data }: { data: CampusData }) {
                   </div>
                   <div className="search-dropdown-list">
                     {filteredPlaces.length > 0 ? (
-                      filteredPlaces.slice(0, 7).map((place) => (
+                      filteredPlaces.slice(0, 8).map((place) => (
                         <button
                           key={place.id}
                           type="button"
                           className={`search-dropdown-item ${selected?.slug === place.slug ? "is-selected" : ""}`}
                           onMouseDown={() => {
                             setSelectedSlug(place.slug);
+                            setIsSheetExpanded(false);
                             setIsSearchFocused(false);
                           }}
                         >
@@ -404,132 +406,15 @@ export function CampusExplorer({ data }: { data: CampusData }) {
                       ))
                     ) : (
                       <div className="search-no-results">
-                        <span>No campus locations found matching &ldquo;{query}&rdquo;</span>
+                        <span>No campus locations found matching "{query}"</span>
                       </div>
                     )}
                   </div>
                 </div>
               ) : null}
             </div>
-            <button
-              type="button"
-              className="map-sos-button"
-              onClick={() => setShowEmergency(true)}
-              aria-label="Campus emergency help"
-              title="Campus Emergency Contacts"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="M12 8v4" />
-                <path d="M12 16h.01" />
-              </svg>
-              <span>SOS</span>
-            </button>
 
-          <div className="map-search-row">
-            <div className="map-search">
-              <label htmlFor="place-search" className="sr-only">Search campus buildings</label>
-              <span aria-hidden="true" className="search-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
-                </svg>
-              </span>
-              <input
-                id="place-search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                placeholder="Search campus buildings, faculties, halls..."
-                autoComplete="off"
-              />
-              {query ? (
-                <button
-                  type="button"
-                  className="search-clear-btn"
-                  onClick={() => setQuery("")}
-                  aria-label="Clear search"
-                  title="Clear search"
-                >
-                  ×
-                </button>
-              ) : null}
-              <button
-                type="button"
-                className={`location-button ${isLiveLocation ? "is-active" : ""} ${isLocating ? "is-locating" : ""}`}
-                aria-label="Show my live location"
-                onClick={showLiveLocation}
-                title="Locate my position on campus"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="3" />
-                  <circle cx="12" cy="12" r="8" />
-                  <line x1="12" y1="2" x2="12" y2="5" />
-                  <line x1="12" y1="19" x2="12" y2="22" />
-                  <line x1="2" y1="12" x2="5" y2="12" />
-                  <line x1="19" y1="12" x2="22" y2="12" />
-                </svg>
-              </button>
-            </div>
-              {/* Floating Instant Search Autocomplete Dropdown */}
-              {(isSearchFocused || query.trim().length > 0) ? (
-                <div className="search-dropdown-menu" role="listbox">
-                  <div className="search-dropdown-header">
-                    <span>{query.trim() ? `Locations matching “{query}” ({filteredPlaces.length})` : `All campus locations ({filteredPlaces.length})`}</span>
-                    <button
-                      type="button"
-                      className="search-dropdown-close"
-                      onClick={() => { setIsSearchFocused(false); setQuery(""); }}
-                    >
-                      Clear
-                    </button>
-                  </div>
-                  <div className="search-dropdown-list">
-                    {filteredPlaces.length > 0 ? (
-                      filteredPlaces.slice(0, 7).map((place) => (
-                        <button
-                          key={place.id}
-                          type="button"
-                          className={`search-dropdown-item ${selected?.slug === place.slug ? "is-selected" : ""}`}
-                          onMouseDown={() => {
-                            setSelectedSlug(place.slug);
-                            setIsSearchFocused(false);
-                          }}
-                        >
-                          <span className="search-item-pin" style={{ background: place.categoryAccent }}>
-                            {place.name.slice(0, 1)}
-                          </span>
-                          <div className="search-item-info">
-                            <strong>{place.name}</strong>
-                            <small>{place.categoryName}</small>
-                          </div>
-                          <span className="search-item-arrow">→</span>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="search-no-results">
-                        <span>No campus locations found matching &ldquo;{query}&rdquo;</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-            <button
-              type="button"
-              className="map-sos-button"
-              onClick={() => setShowEmergency(true)}
-              aria-label="Campus emergency help"
-              title="Campus Emergency Contacts"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="M12 8v4" />
-                <path d="M12 16h.01" />
-              </svg>
-              <span>SOS</span>
-            </button>
-                <div className="map-top-actions">
+            <div className="map-top-actions">
               <div className="map-layer-dock" role="group" aria-label="Map style selector">
                 <button
                   type="button"
@@ -562,9 +447,23 @@ export function CampusExplorer({ data }: { data: CampusData }) {
                   <span>Satellite</span>
                 </button>
               </div>
+
+              <button
+                type="button"
+                className="map-sos-button"
+                onClick={() => setShowEmergency(true)}
+                aria-label="Campus emergency help"
+                title="Campus Emergency Contacts"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="M12 8v4" />
+                  <path d="M12 16h.01" />
+                </svg>
+                <span>SOS</span>
+              </button>
             </div>
           </div>
-
         </div>
 
         {/* Map Canvas */}
@@ -675,29 +574,41 @@ export function CampusExplorer({ data }: { data: CampusData }) {
 
         {/* Place Sheet Card */}
         {selected ? (
-          <article className="place-sheet">
-            <div className="sheet-top-row">
-              <div className="sheet-title-col">
-                <div className="place-category-badge" style={{ borderColor: selected.categoryAccent }}>
-                  <span className="badge-glow-dot" style={{ backgroundColor: selected.categoryAccent }} />
-                  {selected.categoryName}
-                </div>
-                <h2>{selected.name}</h2>
-              </div>
+          <article className={`place-sheet ${isSheetExpanded ? "is-expanded" : "is-collapsed"}`}>
+            {/* Sheet Drag / Tap Handle */}
+            <div className="sheet-header-bar">
+              <button
+                type="button"
+                className="sheet-expand-pill"
+                onClick={() => setIsSheetExpanded(!isSheetExpanded)}
+                aria-expanded={isSheetExpanded}
+                title={isSheetExpanded ? "Collapse card" : "Expand details"}
+              >
+                <span className="sheet-handle-bar" />
+              </button>
               <button
                 type="button"
                 className="sheet-close-btn"
-                onClick={() => setSelectedSlug("")}
-                aria-label="Close location card"
+                onClick={() => { setSelectedSlug(""); setIsSheetExpanded(false); }}
+                aria-label="Close building card"
                 title="Dismiss"
               >
                 ×
               </button>
             </div>
 
-            <p className="place-description">{selected.shortDescription}</p>
+            {/* Collapsed State Header: Category & Name */}
+            <div className="sheet-title-row">
+              <div className="place-category-badge" style={{ borderColor: selected.categoryAccent }}>
+                <span className="badge-glow-dot" style={{ backgroundColor: selected.categoryAccent }} />
+                {selected.categoryName}
+              </div>
+              <h2 className="sheet-place-name">{selected.name}</h2>
+              <p className="sheet-short-desc">{selected.shortDescription}</p>
+            </div>
 
-            <div className="place-actions">
+            {/* Walk / Drive & Get Directions Controls */}
+            <div className="sheet-actions-row">
               <div className="travel-mode-switcher" role="radiogroup" aria-label="Travel mode">
                 <button
                   type="button"
@@ -708,7 +619,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
                   }}
                   title="Walking navigation"
                 >
-                  🚶
+                  🚶 Walk
                 </button>
                 <button
                   type="button"
@@ -719,7 +630,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
                   }}
                   title="Driving navigation"
                 >
-                  🚗
+                  🚗 Drive
                 </button>
               </div>
 
@@ -731,35 +642,67 @@ export function CampusExplorer({ data }: { data: CampusData }) {
               >
                 {isRouting ? (
                   <>
-                    <span className="button-spinner" /> Finding...
+                    <span className="button-spinner" /> Finding route...
                   </>
                 ) : (
                   <>
-                    <span>Directions</span>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    <span>Get {travelMode === "car" ? "driving" : "walking"} directions</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                   </>
                 )}
               </button>
 
               <button
                 type="button"
-                className="share-place-button"
-                onClick={handleSharePlace}
-                title="Share link to this location"
-                aria-label="Share location"
+                className="sheet-details-toggle"
+                onClick={() => setIsSheetExpanded(!isSheetExpanded)}
+                aria-expanded={isSheetExpanded}
+                title={isSheetExpanded ? "Hide details" : "View full details"}
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="18" cy="5" r="3" />
-                  <circle cx="6" cy="12" r="3" />
-                  <circle cx="18" cy="19" r="3" />
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                </svg>
-                <span>{copiedLink ? "Copied" : "Share"}</span>
+                {isSheetExpanded ? "Less ▴" : "More ▾"}
               </button>
             </div>
 
+            {/* Route Guidance Feedback */}
             {routeMessage ? <p className="route-message" role="status">{routeMessage}</p> : null}
+
+            {/* Expanded State Details */}
+            {isSheetExpanded ? (
+              <div className="sheet-expanded-content">
+                <p className="sheet-long-desc">{selected.longDescription}</p>
+                <dl className="place-meta-list">
+                  <div>
+                    <dt>Operating Hours</dt>
+                    <dd>{selected.openingHours ?? "Standard university hours"}</dd>
+                  </div>
+                  <div>
+                    <dt>Navigation Guide</dt>
+                    <dd>{selected.routeHint ?? "Paved walkway access"}</dd>
+                  </div>
+                  <div>
+                    <dt>Accessibility</dt>
+                    <dd>{selected.accessibilityNotes ?? "Accessible ground entrance"}</dd>
+                  </div>
+                </dl>
+                <div className="sheet-expanded-actions">
+                  <button
+                    type="button"
+                    className="share-place-button"
+                    onClick={handleSharePlace}
+                    title="Share link to this location"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="18" cy="5" r="3" />
+                      <circle cx="6" cy="12" r="3" />
+                      <circle cx="18" cy="19" r="3" />
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                    </svg>
+                    <span>{copiedLink ? "Link copied!" : "Share location link"}</span>
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </article>
         ) : null}
       </section>
