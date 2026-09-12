@@ -184,9 +184,16 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   const places = filteredPlaces.length ? filteredPlaces : data.places;
   const selected = places.find((place) => place.slug === selectedSlug) ?? places[0];
 
-  // Quick destinations and orientation picks are drawn ONLY from existing places data
+  // Popular suggestions for search dropdown (real DB items only)
+  const popularPlaces = useMemo(() => {
+    const prioritySlugs = ["faculty-of-health-sciences", "senate-building", "clinic", "agric-hostel", "sports-complex"];
+    const picks = prioritySlugs.map((s) => data.places.find((p) => p.slug === s)).filter(Boolean) as typeof data.places;
+    return picks.length > 0 ? picks : data.places.slice(0, 5);
+  }, [data.places]);
+
+  // Quick destinations (real DB items only)
   const quickDestinations = useMemo(() => {
-    const preferredOrder = ["academic", "hostel", "health", "admin", "support", "transport"];
+    const preferredOrder = ["academic", "hostel", "health", "admin", "support"];
     const picks: typeof data.places = [];
     for (const slug of preferredOrder) {
       const match = data.places.find((place) => place.categorySlug === slug);
@@ -195,14 +202,11 @@ export function CampusExplorer({ data }: { data: CampusData }) {
     return picks.slice(0, 5);
   }, [data.places]);
 
+  // Orientation 4 landmarks (real DB items only)
   const orientationPlaces = useMemo(() => {
-    const preferredOrder = ["academic", "hostel", "support", "health"];
-    const picks: typeof data.places = [];
-    for (const slug of preferredOrder) {
-      const match = data.places.find((place) => place.categorySlug === slug);
-      if (match && !picks.some((p) => p.id === match.id)) picks.push(match);
-    }
-    return picks.slice(0, 4);
+    const prioritySlugs = ["faculty-of-health-sciences", "senate-building", "clinic", "agric-hostel"];
+    const picks = prioritySlugs.map((s) => data.places.find((p) => p.slug === s)).filter(Boolean) as typeof data.places;
+    return picks.length === 4 ? picks : data.places.slice(0, 4);
   }, [data.places]);
 
   function focusPlace(slug: string) {
@@ -405,7 +409,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
               {(isSearchFocused || query.trim().length > 0) ? (
                 <div className="search-dropdown-menu" role="listbox">
                   <div className="search-dropdown-header">
-                    <span>{query.trim() ? `Locations matching "${query}" (${filteredPlaces.length})` : `All campus locations (${filteredPlaces.length})`}</span>
+                    <span>{query.trim() ? `MATCHING LOCATIONS (${filteredPlaces.length})` : `POPULAR PLACES`}</span>
                     <button
                       type="button"
                       className="search-dropdown-close"
@@ -415,8 +419,8 @@ export function CampusExplorer({ data }: { data: CampusData }) {
                     </button>
                   </div>
                   <div className="search-dropdown-list">
-                    {filteredPlaces.length > 0 ? (
-                      filteredPlaces.slice(0, 8).map((place) => (
+                    {((query.trim() ? filteredPlaces : popularPlaces).length > 0) ? (
+                      (query.trim() ? filteredPlaces.slice(0, 8) : popularPlaces).map((place) => (
                         <button
                           key={place.id}
                           type="button"
@@ -425,6 +429,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
                             setSelectedSlug(place.slug);
                             setIsSheetExpanded(false);
                             setIsSearchFocused(false);
+                            setQuery("");
                           }}
                         >
                           <span className="search-item-pin" style={{ background: place.categoryAccent }}>
@@ -622,7 +627,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
         {/* Place Sheet Card */}
         {selected ? (
           <article className={`place-sheet ${isSheetExpanded ? "is-expanded" : "is-collapsed"}`}>
-            {/* Sheet Drag / Tap Handle */}
+            {/* Sheet Drag / Tap Handle & Dismiss */}
             <div className="sheet-header-bar">
               <button
                 type="button"
@@ -644,7 +649,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
               </button>
             </div>
 
-            {/* Collapsed State Header: Category & Name */}
+            {/* Header: Category & Name */}
             <div className="sheet-title-row">
               <div className="place-category-badge" style={{ borderColor: selected.categoryAccent }}>
                 <span className="badge-glow-dot" style={{ backgroundColor: selected.categoryAccent }} />
@@ -654,8 +659,32 @@ export function CampusExplorer({ data }: { data: CampusData }) {
               <p className="sheet-short-desc">{selected.shortDescription}</p>
             </div>
 
-            {/* Walk / Drive & Get Directions Controls */}
-            <div className="sheet-actions-row">
+            {/* Expanded Content: About, Hours, and Accessibility */}
+            {isSheetExpanded ? (
+              <div className="sheet-expanded-content">
+                <div className="sheet-about-block">
+                  <h4 className="sheet-about-title">About</h4>
+                  <p className="sheet-long-desc">{selected.longDescription || selected.shortDescription}</p>
+                </div>
+                <dl className="place-meta-list">
+                  <div>
+                    <dt>Operating Hours</dt>
+                    <dd>{selected.openingHours ?? "Standard university hours"}</dd>
+                  </div>
+                  <div>
+                    <dt>Navigation Guide</dt>
+                    <dd>{selected.routeHint ?? "Paved walkway access"}</dd>
+                  </div>
+                  <div>
+                    <dt>Accessibility</dt>
+                    <dd>{selected.accessibilityNotes ?? "Accessible ground entrance"}</dd>
+                  </div>
+                </dl>
+              </div>
+            ) : null}
+
+            {/* Mode Switcher: Walk / Drive */}
+            <div className="sheet-mode-row">
               <div className="travel-mode-switcher" role="radiogroup" aria-label="Travel mode">
                 <button
                   type="button"
@@ -680,105 +709,84 @@ export function CampusExplorer({ data }: { data: CampusData }) {
                   🚗 Drive
                 </button>
               </div>
+            </div>
 
+            {/* Primary Action: Get Directions */}
+            <button
+              type="button"
+              className="direction-button"
+              onClick={() => requestRoute(travelMode)}
+              disabled={isRouting}
+            >
+              {isRouting ? (
+                <>
+                  <span className="button-spinner" /> Finding route...
+                </>
+              ) : (
+                <>
+                  <span>Get {travelMode === "car" ? "driving" : "walking"} directions</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </>
+              )}
+            </button>
+
+            {/* Secondary Actions: Share & Details */}
+            <div className="sheet-secondary-actions">
               <button
                 type="button"
-                className="direction-button"
-                onClick={() => requestRoute(travelMode)}
-                disabled={isRouting}
+                className="sheet-secondary-btn share-place-button"
+                onClick={handleSharePlace}
+                title="Share link to this location"
               >
-                {isRouting ? (
-                  <>
-                    <span className="button-spinner" /> Finding route...
-                  </>
-                ) : (
-                  <>
-                    <span>Get {travelMode === "car" ? "driving" : "walking"} directions</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                  </>
-                )}
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="18" cy="5" r="3" />
+                  <circle cx="6" cy="12" r="3" />
+                  <circle cx="18" cy="19" r="3" />
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                </svg>
+                <span>{copiedLink ? "Link copied!" : "Share location"}</span>
               </button>
 
               <button
                 type="button"
-                className="sheet-details-toggle"
+                className="sheet-secondary-btn sheet-details-btn"
                 onClick={() => setIsSheetExpanded(!isSheetExpanded)}
                 aria-expanded={isSheetExpanded}
                 title={isSheetExpanded ? "Hide details" : "View full details"}
               >
-                {isSheetExpanded ? "Less ▴" : "More ▾"}
+                {isSheetExpanded ? (
+                  <>
+                    <span>Hide details</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                  </>
+                ) : (
+                  <>
+                    <span>View details</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </>
+                )}
               </button>
             </div>
 
             {/* Route Guidance Feedback */}
             {routeMessage ? <p className="route-message" role="status">{routeMessage}</p> : null}
-
-            {/* Expanded State Details */}
-            {isSheetExpanded ? (
-              <div className="sheet-expanded-content">
-                <p className="sheet-long-desc">{selected.longDescription}</p>
-                <dl className="place-meta-list">
-                  <div>
-                    <dt>Operating Hours</dt>
-                    <dd>{selected.openingHours ?? "Standard university hours"}</dd>
-                  </div>
-                  <div>
-                    <dt>Navigation Guide</dt>
-                    <dd>{selected.routeHint ?? "Paved walkway access"}</dd>
-                  </div>
-                  <div>
-                    <dt>Accessibility</dt>
-                    <dd>{selected.accessibilityNotes ?? "Accessible ground entrance"}</dd>
-                  </div>
-                </dl>
-                <div className="sheet-expanded-actions">
-                  <button
-                    type="button"
-                    className="share-place-button"
-                    onClick={handleSharePlace}
-                    title="Share link to this location"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="18" cy="5" r="3" />
-                      <circle cx="6" cy="12" r="3" />
-                      <circle cx="18" cy="19" r="3" />
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                    </svg>
-                    <span>{copiedLink ? "Link copied!" : "Share location link"}</span>
-                  </button>
-                </div>
-              </div>
-            ) : null}
           </article>
         ) : null}
       </section>
 
       </div>
 
-      {/* Guide Section */}
+      {/* Student Orientation Section */}
       <section id="guide" className="guide-section">
         <div className="guide-heading">
-          <span className="guide-eyebrow">Student Orientation Checklist</span>
-          <h2>Four stops to get your bearings.</h2>
-          <p>Start small and use this checklist to get familiar with key Taraba State University landmarks.</p>
-        </div>
-        <div className="guide-steps">
-          {data.guideSteps.map((step, index) => (
-            <article className="guide-step-card" key={step.id}>
-              <div className="step-badge">
-                {step.icon || String(index + 1).padStart(2, "0")}
-              </div>
-              <div className="step-content">
-                <h3>{step.title}</h3>
-                <p>{step.description}</p>
-              </div>
-            </article>
-          ))}
+          <span className="guide-eyebrow">Student Orientation</span>
+          <h2>Four places to help you get familiar with TSU.</h2>
+          <p>Tap any landmark to locate it on campus, view building details, and get walking or driving directions.</p>
         </div>
 
         {/* Orientation picks: real campus locations, tap to open on the map */}
-        <div className="orientation-places" aria-label="Key campus locations">
+        <div className="orientation-places" aria-label="Key campus landmarks">
           {orientationPlaces.map((place, index) => (
             <button
               key={place.id}
@@ -789,7 +797,8 @@ export function CampusExplorer({ data }: { data: CampusData }) {
               <span className="orientation-step-num">{String(index + 1).padStart(2, "0")}</span>
               <span className="orientation-place-info">
                 <strong>{place.name}</strong>
-                <small>{place.categoryName}</small>
+                <span className="orientation-place-category">{place.categoryName}</span>
+                <small>{place.shortDescription}</small>
               </span>
               <span className="orientation-place-arrow" aria-hidden="true">→</span>
             </button>
