@@ -676,101 +676,90 @@ export function CampusExplorer({ data }: { data: CampusData }) {
         {/* Place Sheet Card */}
         {selected ? (
           <article className="place-sheet">
-            <div className="sheet-handle" />
-            <div className="place-category-badge" style={{ borderColor: selected.categoryAccent }}>
-              <span className="badge-glow-dot" style={{ backgroundColor: selected.categoryAccent }} />
-              {selected.categoryName}
+            <div className="sheet-top-row">
+              <div className="sheet-title-col">
+                <div className="place-category-badge" style={{ borderColor: selected.categoryAccent }}>
+                  <span className="badge-glow-dot" style={{ backgroundColor: selected.categoryAccent }} />
+                  {selected.categoryName}
+                </div>
+                <h2>{selected.name}</h2>
+              </div>
+              <button
+                type="button"
+                className="sheet-close-btn"
+                onClick={() => setSelectedSlug("")}
+                aria-label="Close location card"
+                title="Dismiss"
+              >
+                ×
+              </button>
             </div>
-            <h2>{selected.name}</h2>
+
             <p className="place-description">{selected.shortDescription}</p>
 
             <div className="place-actions">
-              <div className="direction-control-group">
-                <div className="travel-mode-switcher" role="radiogroup" aria-label="Travel mode">
-                  <button
-                    type="button"
-                    className={`mode-btn ${travelMode === "foot" ? "is-selected" : ""}`}
-                    onClick={() => {
-                      setTravelMode("foot");
-                      if (routeSummary) requestRoute("foot");
-                    }}
-                    title="Pedestrian / Walking navigation"
-                  >
-                    🚶 Walk
-                  </button>
-                  <button
-                    type="button"
-                    className={`mode-btn ${travelMode === "car" ? "is-selected" : ""}`}
-                    onClick={() => {
-                      setTravelMode("car");
-                      if (routeSummary) requestRoute("car");
-                    }}
-                    title="Vehicle / Driving navigation"
-                  >
-                    🚗 Drive
-                  </button>
-                </div>
+              <div className="travel-mode-switcher" role="radiogroup" aria-label="Travel mode">
                 <button
                   type="button"
-                  className="direction-button"
-                  onClick={() => requestRoute(travelMode)}
-                  disabled={isRouting}
+                  className={`mode-btn ${travelMode === "foot" ? "is-selected" : ""}`}
+                  onClick={() => {
+                    setTravelMode("foot");
+                    if (routeSummary) requestRoute("foot");
+                  }}
+                  title="Walking navigation"
                 >
-                  {isRouting ? (
-                    <>
-                      <span className="button-spinner" /> Finding route...
-                    </>
-                  ) : (
-                    <>
-                      <span>Get {travelMode === "car" ? "driving" : "walking"} directions</span>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                    </>
-                  )}
+                  🚶
+                </button>
+                <button
+                  type="button"
+                  className={`mode-btn ${travelMode === "car" ? "is-selected" : ""}`}
+                  onClick={() => {
+                    setTravelMode("car");
+                    if (routeSummary) requestRoute("car");
+                  }}
+                  title="Driving navigation"
+                >
+                  🚗
                 </button>
               </div>
+
+              <button
+                type="button"
+                className="direction-button"
+                onClick={() => requestRoute(travelMode)}
+                disabled={isRouting}
+              >
+                {isRouting ? (
+                  <>
+                    <span className="button-spinner" /> Finding...
+                  </>
+                ) : (
+                  <>
+                    <span>Directions</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  </>
+                )}
+              </button>
 
               <button
                 type="button"
                 className="share-place-button"
                 onClick={handleSharePlace}
                 title="Share link to this location"
+                aria-label="Share location"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="18" cy="5" r="3" />
                   <circle cx="6" cy="12" r="3" />
                   <circle cx="18" cy="19" r="3" />
                   <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
                   <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                 </svg>
-                <span>{copiedLink ? "Link copied!" : "Share location"}</span>
+                <span>{copiedLink ? "Copied" : "Share"}</span>
               </button>
             </div>
 
             {routeMessage ? <p className="route-message" role="status">{routeMessage}</p> : null}
-
-            <details className="place-more">
-              <summary>
-                <span>View location notes & details</span>
-                <svg className="details-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
-              </summary>
-              <div className="place-more-content">
-                <p>{selected.longDescription}</p>
-                <dl className="place-meta-list">
-                  <div>
-                    <dt>Operating Hours</dt>
-                    <dd>{selected.openingHours ?? "Standard university hours"}</dd>
-                  </div>
-                  <div>
-                    <dt>Navigation Guide</dt>
-                    <dd>{selected.routeHint ?? "Paved walkway access"}</dd>
-                  </div>
-                  <div>
-                    <dt>Accessibility</dt>
-                    <dd>{selected.accessibilityNotes ?? "Accessible ground entrance"}</dd>
-                  </div>
-                </dl>
-              </div>
-            </details>
           </article>
         ) : null}
       </section>

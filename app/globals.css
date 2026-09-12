@@ -2537,3 +2537,111 @@ html[data-theme="light"] .drawer-emergency-sub {
 .map-sos-button svg {
   color: #ef4444;
 }
+
+
+/* Ultra-compact mobile place-sheet styles */
+.sheet-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sheet-title-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.sheet-close-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.sheet-close-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--text-primary);
+}
+
+.place-sheet {
+  position: absolute;
+  z-index: 600;
+  right: 14px;
+  bottom: 14px;
+  left: 14px;
+  max-width: 420px;
+  padding: 12px 14px !important;
+  border-radius: 16px !important;
+  max-height: 200px !important;
+  overflow: hidden !important;
+}
+
+.place-sheet h2 {
+  font-size: 15px !important;
+  margin: 3px 0 0 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.place-sheet .place-description {
+  margin: 4px 0 0 !important;
+  font-size: 11px !important;
+  line-height: 1.3 !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.place-sheet .place-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-top: 8px !important;
+  flex-wrap: nowrap !important;
+}
+
+.place-sheet .travel-mode-switcher {
+  display: inline-flex !important;
+  padding: 2px !important;
+  gap: 2px !important;
+  flex-shrink: 0 !important;
+}
+
+.place-sheet .mode-btn {
+  padding: 4px 8px !important;
+  font-size: 13px !important;
+  border-radius: 6px !important;
+}
+
+.place-sheet .direction-button {
+  flex: 1 1 auto !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  white-space: nowrap !important;
+  justify-content: center !important;
+}
+
+.place-sheet .share-place-button {
+  padding: 0 10px !important;
+  height: 36px !important;
+  font-size: 11px !important;
+  border-radius: 10px !important;
+  flex-shrink: 0 !important;
+}
