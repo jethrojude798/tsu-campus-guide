@@ -29,7 +29,6 @@ export default async function HomePage() {
           <nav className="nav-links">
             <a href="#explore" className="nav-item">Explore map</a>
             <a href="#guide" className="nav-item">Student guide</a>
-            <a href="/admin" className="nav-admin-badge">Admin</a>
           </nav>
           <ThemeToggle />
         </div>
