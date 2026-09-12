@@ -2851,3 +2851,142 @@ html[data-theme="light"] .drawer-emergency-sub {
     font-size: 11.5px;
   }
 }
+
+/* ==========================================================================
+   Home Experience, Quick Destinations, & Interactive Orientation Cards
+   ========================================================================== */
+
+.map-intro {
+  padding: 18px 16px 8px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.map-intro h1 {
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.map-intro p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.quick-destinations {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.quick-destinations::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-destination-chip {
+  flex-shrink: 0;
+  background: var(--bg-glass-strong);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-card);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.quick-destination-chip:hover,
+.quick-destination-chip.is-selected {
+  background: var(--accent-orange, #ea580c);
+  color: #fff;
+  border-color: var(--accent-orange, #ea580c);
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35);
+}
+
+.orientation-places {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.orientation-place-card {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-glass-strong);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-card);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--text-primary);
+}
+
+.orientation-place-card:hover {
+  border-color: var(--accent-orange, #ea580c);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.orientation-step-num {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent-orange, #ea580c);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(234, 88, 12, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.orientation-place-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.orientation-place-info strong {
+  font-size: 0.88rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.orientation-place-info small {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.orientation-place-arrow {
+  color: var(--text-muted);
+  font-size: 1rem;
+  transition: transform 0.15s ease;
+}
+
+.orientation-place-card:hover .orientation-place-arrow {
+  transform: translateX(3px);
+  color: var(--accent-orange, #ea580c);
+}

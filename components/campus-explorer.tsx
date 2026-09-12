@@ -184,6 +184,35 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   const places = filteredPlaces.length ? filteredPlaces : data.places;
   const selected = places.find((place) => place.slug === selectedSlug) ?? places[0];
 
+  // Quick destinations and orientation picks are drawn ONLY from existing places data
+  const quickDestinations = useMemo(() => {
+    const preferredOrder = ["academic", "hostel", "health", "admin", "support", "transport"];
+    const picks: typeof data.places = [];
+    for (const slug of preferredOrder) {
+      const match = data.places.find((place) => place.categorySlug === slug);
+      if (match && !picks.some((p) => p.id === match.id)) picks.push(match);
+    }
+    return picks.slice(0, 5);
+  }, [data.places]);
+
+  const orientationPlaces = useMemo(() => {
+    const preferredOrder = ["academic", "hostel", "support", "health"];
+    const picks: typeof data.places = [];
+    for (const slug of preferredOrder) {
+      const match = data.places.find((place) => place.categorySlug === slug);
+      if (match && !picks.some((p) => p.id === match.id)) picks.push(match);
+    }
+    return picks.slice(0, 4);
+  }, [data.places]);
+
+  function focusPlace(slug: string) {
+    setSelectedSlug(slug);
+    setIsSheetExpanded(false);
+    if (typeof document !== "undefined") {
+      document.getElementById("explore")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   useEffect(() => {
     if (!isLiveLocation || !navigator.geolocation) return;
     const watchId = navigator.geolocation.watchPosition(
@@ -318,6 +347,10 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   return (
     <>
       <div id="explore" className="trail-app">
+      <section className="map-intro" aria-label="Introduction">
+        <h1>Find your way around TSU</h1>
+        <p>Search for faculties, halls, hostels and important campus locations.</p>
+      </section>
       <section className="map-stage" aria-label="Campus live map">
         {/* Floating Map Controls Header Overlay */}
         <div className="map-controls-overlay">
@@ -464,6 +497,20 @@ export function CampusExplorer({ data }: { data: CampusData }) {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Quick Destinations (existing campus locations only) */}
+        <div className="quick-destinations" aria-label="Quick destinations">
+          {quickDestinations.map((place) => (
+            <button
+              key={place.id}
+              type="button"
+              className={`quick-destination-chip ${selectedSlug === place.slug ? "is-selected" : ""}`}
+              onClick={() => focusPlace(place.slug)}
+            >
+              {place.name}
+            </button>
+          ))}
         </div>
 
         {/* Map Canvas */}
@@ -727,6 +774,25 @@ export function CampusExplorer({ data }: { data: CampusData }) {
                 <p>{step.description}</p>
               </div>
             </article>
+          ))}
+        </div>
+
+        {/* Orientation picks: real campus locations, tap to open on the map */}
+        <div className="orientation-places" aria-label="Key campus locations">
+          {orientationPlaces.map((place, index) => (
+            <button
+              key={place.id}
+              type="button"
+              className="orientation-place-card"
+              onClick={() => focusPlace(place.slug)}
+            >
+              <span className="orientation-step-num">{String(index + 1).padStart(2, "0")}</span>
+              <span className="orientation-place-info">
+                <strong>{place.name}</strong>
+                <small>{place.categoryName}</small>
+              </span>
+              <span className="orientation-place-arrow" aria-hidden="true">→</span>
+            </button>
           ))}
         </div>
       </section>
