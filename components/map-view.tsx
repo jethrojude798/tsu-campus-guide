@@ -72,6 +72,37 @@ function MapFocus({
   return null;
 }
 
+function ZoomControls() {
+  const map = useMap();
+  return (
+    <div className="map-zoom-dock" role="group" aria-label="Map zoom controls">
+      <button
+        type="button"
+        className="map-zoom-btn"
+        onClick={() => map.zoomIn()}
+        aria-label="Zoom in"
+        title="Zoom in"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        className="map-zoom-btn"
+        onClick={() => map.zoomOut()}
+        aria-label="Zoom out"
+        title="Zoom out"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 function markerIcon(place: Place, active: boolean) {
   const initials = place.name
     .split(" ")
@@ -131,13 +162,14 @@ export default function MapView({
 
   return (
     <div className="osm-map-wrap">
-      <MapContainer className="leaflet-map" center={center} zoom={17} scrollWheelZoom zoomControl>
+      <MapContainer className="leaflet-map" center={center} zoom={17} scrollWheelZoom zoomControl={false}>
         <TileLayer
           attribution='<a href="https://www.maptiler.com/" target="_blank">&copy; MapTiler</a>'
           url={tileUrl}
           maxZoom={20}
         />
         <MapFocus places={mappedPlaces} selected={selected} route={route} userLocation={userLocation} />
+        <ZoomControls />
         {/* Only show the pin for the currently selected location */}
         {selected && selected.latitude != null && selected.longitude != null ? (
           <Marker
