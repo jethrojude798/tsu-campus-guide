@@ -15,18 +15,18 @@ export default async function HomePage() {
               src="/tsu-logo.png"
               alt="Taraba State University Crest"
               className="brand-logo-img"
-              width={40}
-              height={40}
+              width={34}
+              height={34}
             />
           </div>
           <div className="brand-text">
             <strong>TSU CAMPUS GUIDE</strong>
-            <span>Taraba State University</span>
+            <span className="brand-subtitle">Taraba State University</span>
           </div>
         </a>
 
         <div className="topbar-actions">
-          <nav className="nav-links">
+          <nav className="nav-links mobile-hide">
             <a href="#explore" className="nav-item">Explore map</a>
             <a href="#guide" className="nav-item">Student guide</a>
           </nav>
