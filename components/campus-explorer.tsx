@@ -288,11 +288,10 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   return (
     <>
       <div id="explore" className="trail-app">
-        {/* 1. Compact Intro Heading */}
-        <section className="compact-hero-intro" aria-label="Introduction">
-          <h1 className="hero-title">Find your way around TSU</h1>
-          <p className="hero-subtext">Search faculties, hostels, halls and important campus locations.</p>
-        </section>
+        {/* Top Header Eyebrow */}
+        <div className="mobile-map-eyebrow">
+          <h1>Find your way around TSU</h1>
+        </div>
 
         {/* 2. Top Search Bar */}
         <div className="mobile-search-container">
@@ -713,31 +712,34 @@ export function CampusExplorer({ data }: { data: CampusData }) {
         </section>
       </div>
 
-      {/* 5. Student Orientation Section */}
-      <section id="guide" className="guide-section">
-        <div className="guide-heading">
-          <span className="guide-eyebrow">Student Orientation</span>
-          <h2>Start with the places you'll use most.</h2>
-          <p>Tap any landmark to locate it on campus, view building details, and get walking or driving directions.</p>
+      {/* 5. Compact Student Orientation Section (Below Main Map) */}
+      <section id="guide" className="compact-orientation-section" aria-label="Student orientation">
+        <div className="orientation-header-compact">
+          <div className="orientation-title-group">
+            <span className="orientation-pill-tag">ORIENTATION</span>
+            <h3>Start with the places you'll use most</h3>
+          </div>
+          <span className="orientation-scroll-hint">Swipe →</span>
         </div>
 
-        {/* Orientation picks: real campus locations, tap to open on the map */}
-        <div className="orientation-places" aria-label="Key campus landmarks">
+        {/* Horizontal scrollable row of compact cards */}
+        <div className="orientation-horizontal-scroll" role="region" aria-label="Orientation landmark shortcuts">
           {orientationPlaces.map((place, index) => (
             <button
               key={place.id}
               type="button"
-              className="orientation-place-card"
+              className="orientation-compact-card"
               onClick={() => focusPlace(place.slug)}
             >
-              <div className="orientation-card-header">
-                <span className="orientation-step-badge">{String(index + 1).padStart(2, "0")}</span>
-                <span className="orientation-card-cat" style={{ color: place.categoryAccent }}>{place.categoryName}</span>
+              <div className="orientation-card-top">
+                <span className="orientation-step-num">{String(index + 1).padStart(2, "0")}</span>
+                <span className="orientation-cat-badge" style={{ color: place.categoryAccent, borderColor: place.categoryAccent }}>
+                  {place.categoryName}
+                </span>
               </div>
-              <strong className="orientation-card-title">{place.name}</strong>
-              <p className="orientation-card-desc">{place.shortDescription}</p>
-              <div className="orientation-card-footer">
-                <span className="orientation-action-text">View on map →</span>
+              <strong className="orientation-card-name">{place.name}</strong>
+              <div className="orientation-card-bottom">
+                <span className="orientation-view-link">View on map →</span>
               </div>
             </button>
           ))}
