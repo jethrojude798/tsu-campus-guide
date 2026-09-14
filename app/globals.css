@@ -3878,3 +3878,146 @@ html[data-theme="light"] .drawer-emergency-sub {
   font-weight: 700;
   color: #f97316;
 }
+
+
+/* ==========================================================================
+   COMPACT STUDENT ORIENTATION STRIP (BELOW MAP)
+   ========================================================================== */
+
+.mobile-map-eyebrow {
+  padding: 6px 14px 2px;
+  background: var(--bg-base);
+}
+
+.mobile-map-eyebrow h1 {
+  font-size: 1.02rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.compact-orientation-section {
+  padding: 16px 14px 28px;
+  background: var(--bg-base);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.orientation-header-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.orientation-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.orientation-pill-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+}
+
+.orientation-header-compact h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.orientation-scroll-hint {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.orientation-horizontal-scroll {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  overflow-x: auto;
+  white-space: normal;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 6px;
+}
+
+.orientation-horizontal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.orientation-compact-card {
+  flex: 0 0 200px;
+  max-width: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.orientation-compact-card:hover, .orientation-compact-card:active {
+  transform: translateY(-2px);
+  border-color: #f97316;
+}
+
+.orientation-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.orientation-step-num {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.orientation-cat-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  border: 1px solid;
+}
+
+.orientation-card-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.25;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.orientation-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.orientation-view-link {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #f97316;
+}
