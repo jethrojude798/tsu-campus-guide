@@ -472,14 +472,36 @@ export function CampusExplorer({ data }: { data: CampusData }) {
             />
           </div>
 
-          {/* Route Status & Audio Guidance Dock */}
+          {/* Active Navigation Bottom Dock - Replaces place sheet during directions */}
           {routeSummary ? (
-            <div className="route-guidance-card" role="region" aria-label="Route and voice directions">
+            <div className="route-guidance-card" role="region" aria-label="Active route and navigation">
+              <div className="route-nav-top-row">
+                <div className="route-nav-target">
+                  <span className="route-nav-badge">{routeSummary.travelMode === "car" ? "🚗 Drive" : "🚶 Walk"}</span>
+                  <strong className="route-nav-name">{selected?.name ?? "Campus Destination"}</strong>
+                </div>
+                <button
+                  type="button"
+                  className="route-nav-exit-btn"
+                  onClick={() => {
+                    setRouteSummary(null);
+                    setRouteGeometry([]);
+                    setRouteSteps([]);
+                    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+                      window.speechSynthesis.cancel();
+                    }
+                  }}
+                  title="Exit navigation"
+                  aria-label="Exit navigation"
+                >
+                  Exit ✕
+                </button>
+              </div>
+
               <div className="route-guidance-header">
                 <div className="route-mode-pill">
-                  {routeSummary.travelMode === "car" ? "🚗 Driving" : "🚶 Walking"} route
-                  <strong>{routeSummary.minutes} min</strong>
-                  <span>({routeSummary.distanceKm} km)</span>
+                  <span className="route-eta-time">{routeSummary.minutes} min</span>
+                  <span className="route-eta-dist">({routeSummary.distanceKm} km)</span>
                 </div>
                 <div className="route-voice-actions">
                   <button
@@ -508,21 +530,6 @@ export function CampusExplorer({ data }: { data: CampusData }) {
                         <span>Voice Muted</span>
                       </>
                     )}
-                  </button>
-                  <button
-                    type="button"
-                    className="route-clear-btn"
-                    onClick={() => {
-                      setRouteSummary(null);
-                      setRouteGeometry([]);
-                      setRouteSteps([]);
-                      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-                        window.speechSynthesis.cancel();
-                      }
-                    }}
-                    title="Close route"
-                  >
-                    ✕
                   </button>
                 </div>
               </div>
@@ -559,8 +566,8 @@ export function CampusExplorer({ data }: { data: CampusData }) {
             </div>
           ) : null}
 
-          {/* Selected Location: Mobile Bottom Sheet / Desktop Panel */}
-          {selected ? (
+          {/* Selected Location: Mobile Bottom Sheet / Desktop Panel (only when not routing) */}
+          {selected && !routeSummary ? (
             <article className={`place-sheet ${isSheetExpanded ? "is-expanded" : "is-collapsed"}`} aria-label="Selected location details">
               {/* Top Drag / Tap Handle */}
               <div className="sheet-handle-row" onClick={() => setIsSheetExpanded(!isSheetExpanded)}>
