@@ -52,7 +52,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   const [category, setCategory] = useState<string>("all");
   const [query, setQuery] = useState<string>("");
   const [deferredQuery, setDeferredQuery] = useState<string>("");
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [isLiveLocation, setIsLiveLocation] = useState<boolean>(false);
@@ -123,23 +123,19 @@ export function CampusExplorer({ data }: { data: CampusData }) {
 
   // Popular suggestions for search dropdown (strictly real DB items)
   const popularPlaces = useMemo(() => {
-    const prioritySlugs = ["faculty-of-health-sciences", "senate-building", "clinic", "agric-hostel", "sports-complex"];
+    const prioritySlugs = ["faculty-of-health-sciences", "senate-building", "clinic", "agric-hostel", "ict"];
     const picks = prioritySlugs.map((s) => data.places.find((p) => p.slug === s)).filter(Boolean) as typeof data.places;
     return picks.length > 0 ? picks : data.places.slice(0, 5);
   }, [data.places]);
 
-  // Quick destinations (real DB items)
+  // Quick destinations shortcut row (strictly real DB items in horizontal row)
   const quickDestinations = useMemo(() => {
-    const preferredOrder = ["academic", "hostel", "health", "admin", "support"];
-    const picks: typeof data.places = [];
-    for (const slug of preferredOrder) {
-      const match = data.places.find((place) => place.categorySlug === slug);
-      if (match && !picks.some((p) => p.id === match.id)) picks.push(match);
-    }
-    return picks.slice(0, 5);
+    const prioritySlugs = ["faculty-of-health-sciences", "agric-hostel", "clinic", "senate-building", "ict"];
+    const picks = prioritySlugs.map((s) => data.places.find((p) => p.slug === s)).filter(Boolean) as typeof data.places;
+    return picks.length > 0 ? picks : data.places.slice(0, 5);
   }, [data.places]);
 
-  // Orientation landmarks (strictly real DB items)
+  // Orientation 4 landmarks (strictly real DB items)
   const orientationPlaces = useMemo(() => {
     const prioritySlugs = ["faculty-of-health-sciences", "senate-building", "clinic", "agric-hostel"];
     const picks = prioritySlugs.map((s) => data.places.find((p) => p.slug === s)).filter(Boolean) as typeof data.places;
@@ -292,13 +288,13 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   return (
     <>
       <div id="explore" className="trail-app">
-        {/* Intro */}
-        <section className="map-intro" aria-label="Introduction">
-          <h1>Find your way around TSU</h1>
-          <p>Search faculties, hostels, halls and important campus locations.</p>
+        {/* 1. Compact Intro Heading */}
+        <section className="compact-hero-intro" aria-label="Introduction">
+          <h1 className="hero-title">Find your way around TSU</h1>
+          <p className="hero-subtext">Search faculties, hostels, halls and important campus locations.</p>
         </section>
 
-        {/* Top Search Bar (Above Map) */}
+        {/* 2. Top Search Bar */}
         <div className="mobile-search-container">
           <div className="map-search-row">
             <div className="map-search">
@@ -378,21 +374,24 @@ export function CampusExplorer({ data }: { data: CampusData }) {
           </div>
         </div>
 
-        {/* Quick Destinations (existing database locations) */}
-        <div className="quick-destinations" aria-label="Quick destinations">
-          {quickDestinations.map((place) => (
-            <button
-              key={place.id}
-              type="button"
-              className={`quick-destination-chip ${selectedSlug === place.slug ? "is-selected" : ""}`}
-              onClick={() => focusPlace(place.slug)}
-            >
-              {place.name}
-            </button>
-          ))}
+        {/* 3. Horizontal Scrollable Quick Destinations Row */}
+        <div className="quick-destinations-bar" aria-label="Quick destination shortcuts">
+          <div className="quick-destinations-scroll">
+            {quickDestinations.map((place) => (
+              <button
+                key={place.id}
+                type="button"
+                className={`quick-chip ${selectedSlug === place.slug ? "is-active" : ""}`}
+                onClick={() => focusPlace(place.slug)}
+              >
+                <span className="chip-indicator" style={{ backgroundColor: place.categoryAccent }} />
+                <span>{place.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Map Stage: The Hero */}
+        {/* 4. MAP: The Main Hero */}
         <section className="map-stage" aria-label="Campus live map">
           {/* Upper-Right: Street / Satellite Toggle */}
           <div className="map-upper-right-controls">
@@ -459,7 +458,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
               aria-label="Campus emergency help"
               title="Campus Emergency Contacts"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 <path d="M12 8v4" />
                 <path d="M12 16h.01" />
@@ -568,7 +567,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
             </div>
           ) : null}
 
-          {/* Selected Location: Mobile Bottom Sheet */}
+          {/* Selected Location: Mobile Bottom Sheet / Desktop Panel */}
           {selected ? (
             <article className={`place-sheet ${isSheetExpanded ? "is-expanded" : "is-collapsed"}`} aria-label="Selected location details">
               {/* Top Drag / Tap Handle */}
@@ -714,7 +713,7 @@ export function CampusExplorer({ data }: { data: CampusData }) {
         </section>
       </div>
 
-      {/* Student Orientation Section */}
+      {/* 5. Student Orientation Section */}
       <section id="guide" className="guide-section">
         <div className="guide-heading">
           <span className="guide-eyebrow">Student Orientation</span>
@@ -731,13 +730,15 @@ export function CampusExplorer({ data }: { data: CampusData }) {
               className="orientation-place-card"
               onClick={() => focusPlace(place.slug)}
             >
-              <span className="orientation-step-num">{String(index + 1).padStart(2, "0")}</span>
-              <span className="orientation-place-info">
-                <strong>{place.name}</strong>
-                <span className="orientation-place-category">{place.categoryName}</span>
-                <small>{place.shortDescription}</small>
-              </span>
-              <span className="orientation-place-arrow" aria-hidden="true">→</span>
+              <div className="orientation-card-header">
+                <span className="orientation-step-badge">{String(index + 1).padStart(2, "0")}</span>
+                <span className="orientation-card-cat" style={{ color: place.categoryAccent }}>{place.categoryName}</span>
+              </div>
+              <strong className="orientation-card-title">{place.name}</strong>
+              <p className="orientation-card-desc">{place.shortDescription}</p>
+              <div className="orientation-card-footer">
+                <span className="orientation-action-text">View on map →</span>
+              </div>
             </button>
           ))}
         </div>
