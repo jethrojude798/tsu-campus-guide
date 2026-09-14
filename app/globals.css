@@ -3212,3 +3212,511 @@ html[data-theme="light"] .drawer-emergency-sub {
     font-size: 0.8rem;
   }
 }
+
+
+/* ==========================================================================
+   MOBILE-FIRST NAVIGATION REFINEMENTS
+   ========================================================================== */
+
+/* Compact Top Header */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  min-height: 52px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  position: relative;
+  z-index: 100;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.brand-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-text strong {
+  font-family: var(--font-display, inherit);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.brand-subtitle {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 640px) {
+  .mobile-hide {
+    display: none !important;
+  }
+}
+
+/* Mobile Search Bar - Above Map Canvas */
+.mobile-search-container {
+  padding: 8px 12px 6px;
+  background: var(--bg-base);
+  position: relative;
+  z-index: 900;
+}
+
+.mobile-search-container .map-search-row {
+  position: relative;
+  width: 100%;
+}
+
+.mobile-search-container .map-search {
+  display: flex;
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 9999px;
+  padding: 2px 8px 2px 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  min-height: 44px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mobile-search-container .map-search:focus-within {
+  border-color: #f97316;
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.2);
+}
+
+.mobile-search-container .search-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  margin-right: 8px;
+}
+
+.mobile-search-container input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  padding: 8px 0;
+}
+
+.mobile-search-container .search-clear-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px 10px;
+  line-height: 1;
+  min-width: 36px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Map Stage: The Hero Element */
+.map-stage {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 165px);
+  min-height: 480px;
+  max-height: 820px;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .map-stage {
+    height: calc(100svh - 140px);
+    min-height: 420px;
+  }
+}
+
+.map-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.osm-map-wrap, .leaflet-map {
+  width: 100%;
+  height: 100%;
+}
+
+/* Floating Controls Hierarchy */
+/* 1. Upper-Right: Street / Satellite Toggle */
+.map-upper-right-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 500;
+}
+
+.map-layer-dock {
+  display: flex;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  padding: 3px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(12px);
+}
+
+.map-layer-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  min-height: 36px;
+  transition: all 0.2s ease;
+}
+
+.map-layer-tab.is-active {
+  background: var(--bg-surface-elevated, #1e293b);
+  color: var(--text-primary, #ffffff);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* 2. Right Side: Zoom Controls (+ / -) */
+.map-zoom-dock {
+  position: absolute;
+  top: 66px;
+  right: 12px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.map-zoom-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.map-zoom-btn:first-child {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.map-zoom-btn:active {
+  background: rgba(249, 115, 22, 0.15);
+}
+
+/* 3. Lower-Right: Locate Me Button */
+.map-lower-right-controls {
+  position: absolute;
+  bottom: 24px;
+  right: 12px;
+  z-index: 500;
+}
+
+.map-locate-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-subtle);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.map-locate-btn.is-active {
+  background: #f97316;
+  color: #ffffff;
+  border-color: #ea580c;
+}
+
+.map-locate-btn.is-locating {
+  animation: pulse 1.2s infinite;
+}
+
+/* 4. Lower-Left: Single Distinct SOS Button */
+.map-lower-left-controls {
+  position: absolute;
+  bottom: 24px;
+  left: 12px;
+  z-index: 500;
+}
+
+.map-sos-fab {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #dc2626;
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 18px rgba(220, 38, 38, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.map-sos-fab:active {
+  transform: scale(0.96);
+  background: #b91c1c;
+}
+
+/* Selected Location: Mobile Bottom Sheet */
+.place-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  z-index: 600;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-bottom: none;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.35);
+  padding: 6px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  transition: max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.place-sheet.is-collapsed {
+  max-height: 235px;
+}
+
+.place-sheet.is-expanded {
+  max-height: 72vh;
+  overflow-y: auto;
+}
+
+.sheet-handle-row {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.sheet-drag-pill {
+  width: 36px;
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--text-muted);
+  opacity: 0.5;
+}
+
+.sheet-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.place-category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  border: 1px solid currentColor;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-glow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.sheet-close-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.sheet-close-btn:active {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.sheet-title-row {
+  margin-bottom: 10px;
+}
+
+.sheet-place-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 2px 0 3px;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.sheet-short-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sheet-mode-row {
+  margin-bottom: 10px;
+}
+
+.travel-mode-switcher {
+  display: inline-flex;
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.mode-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s ease;
+}
+
+.mode-btn.is-selected {
+  background: #f97316;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35);
+}
+
+.direction-button {
+  width: 100%;
+  min-height: 46px;
+  background: #f97316;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.3);
+  transition: all 0.15s ease;
+}
+
+.direction-button:active {
+  transform: scale(0.99);
+  background: #ea580c;
+}
+
+.sheet-secondary-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.sheet-secondary-btn {
+  flex: 1;
+  min-height: 38px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.sheet-secondary-btn:active {
+  background: var(--bg-surface-elevated);
+}
+
+.sheet-expanded-content {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.sheet-about-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--text-primary);
+}
+
+.sheet-long-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0 0 12px;
+}
