@@ -121,13 +121,6 @@ export function CampusExplorer({ data }: { data: CampusData }) {
   const places = filteredPlaces.length ? filteredPlaces : data.places;
   const selected = places.find((place) => place.slug === selectedSlug) ?? null;
 
-  // Popular suggestions for search dropdown (strictly real DB items)
-  const popularPlaces = useMemo(() => {
-    const prioritySlugs = ["faculty-of-health-sciences", "senate-building", "clinic", "agric-hostel", "ict"];
-    const picks = prioritySlugs.map((s) => data.places.find((p) => p.slug === s)).filter(Boolean) as typeof data.places;
-    return picks.length > 0 ? picks : data.places.slice(0, 5);
-  }, [data.places]);
-
   // Quick destinations shortcut row (strictly real DB items in horizontal row)
   const quickDestinations = useMemo(() => {
     const prioritySlugs = ["faculty-of-health-sciences", "agric-hostel", "clinic", "senate-building", "ict"];
@@ -325,11 +318,11 @@ export function CampusExplorer({ data }: { data: CampusData }) {
               ) : null}
             </div>
 
-            {/* Instant Search Suggestions Dropdown */}
-            {(isSearchFocused || query.trim().length > 0) ? (
+            {/* Instant Search Suggestions Dropdown - only when searching */}
+            {query.trim().length > 0 ? (
               <div className="search-dropdown-menu" role="listbox">
                 <div className="search-dropdown-header">
-                  <span>{query.trim() ? `MATCHING LOCATIONS (${filteredPlaces.length})` : `POPULAR PLACES`}</span>
+                  <span>MATCHING LOCATIONS ({filteredPlaces.length})</span>
                   <button
                     type="button"
                     className="search-dropdown-close"
@@ -339,8 +332,8 @@ export function CampusExplorer({ data }: { data: CampusData }) {
                   </button>
                 </div>
                 <div className="search-dropdown-list">
-                  {((query.trim() ? filteredPlaces : popularPlaces).length > 0) ? (
-                    (query.trim() ? filteredPlaces.slice(0, 8) : popularPlaces).map((place) => (
+                  {filteredPlaces.length > 0 ? (
+                    filteredPlaces.slice(0, 8).map((place) => (
                       <button
                         key={place.id}
                         type="button"
