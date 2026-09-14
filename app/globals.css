@@ -3410,16 +3410,26 @@ html[data-theme="light"] .drawer-emergency-sub {
 .map-stage {
   position: relative;
   width: 100%;
-  height: calc(100vh - 165px);
-  min-height: 480px;
-  max-height: 820px;
+  height: calc(100vh - 280px);
+  min-height: 460px;
+  max-height: 640px;
   overflow: hidden;
 }
 
 @media (max-width: 640px) {
   .map-stage {
-    height: calc(100svh - 140px);
-    min-height: 420px;
+    height: 54vh;
+    min-height: 400px;
+    max-height: 520px;
+  }
+}
+
+/* Let one-finger vertical swipes scroll the page over the map.
+   Horizontal drags still pan the map, pinch still zooms. */
+@media (pointer: coarse) {
+  .leaflet-map.leaflet-container,
+  .leaflet-map.leaflet-container .leaflet-pane {
+    touch-action: pan-y;
   }
 }
 
